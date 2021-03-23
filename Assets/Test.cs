@@ -33,7 +33,7 @@ public class Test : MonoBehaviour
                 TestCube.instance.Blocks[x, y, z] = TestCube.BlockType.Air;
 
                 TestCube.DeleteChunks();
-                TestCube.instance.GenerateChunks();
+                //TestCube.instance.GenerateChunks();
             }
             /*else if (Input.GetKeyDown(KeyCode.Mouse1))
             {
