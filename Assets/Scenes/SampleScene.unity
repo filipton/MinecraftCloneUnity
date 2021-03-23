@@ -402,7 +402,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6462d688a216a8148aec3cd21c5003ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Seed: 0
+  Seed: -76574
   GeneratorCurve:
     serializedVersion: 2
     m_Curve:
@@ -454,7 +454,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  RenderDistance: 8
+  RenderDistance: 4
   ChunkSizeXZ: 16
   ChunkSizeY: 256
   NoiseScale: 0.15

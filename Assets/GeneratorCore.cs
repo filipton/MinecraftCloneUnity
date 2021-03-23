@@ -50,10 +50,10 @@ public class GeneratorCore : MonoBehaviour
         simplex.OctaveCount = 8;
         simplex.Seed = Seed;
 
-        GenerateWorld();
+        StartCoroutine(GenerateWorld());
     }
 
-	void GenerateWorld()
+	IEnumerator GenerateWorld()
 	{
         for(int x = -RenderDistance; x <= RenderDistance; x++)
 		{
@@ -73,6 +73,7 @@ public class GeneratorCore : MonoBehaviour
 
                 generatorChunks.Add(gc);
                 gc.GenerateChunk(x + offset.x, z + offset.y);
+                yield return null;
             }
         }
     }
