@@ -16,17 +16,13 @@ public class GeneratorChunk : MonoBehaviour
 
     public void GenerateChunk(int cX, int cZ)
 	{
-        meshRenderer.enabled = false;
+        UnityMainThreadDispatcher.Instance().Enqueue(() =>
+        {
+            meshRenderer.enabled = false;
 
-        transform.position = new Vector3(cX * GeneratorCore.singleton.ChunkSizeXZ, 0, cZ * GeneratorCore.singleton.ChunkSizeXZ);
-        name = $"Chunk [{cX},{cZ}]";
-
-        StartCoroutine(GenerateMesh(cX, cZ));
-    }
-
-    public IEnumerator GenerateMesh(int cX, int cZ)
-	{
-        yield return null;
+            transform.position = new Vector3(cX * GeneratorCore.singleton.ChunkSizeXZ, 0, cZ * GeneratorCore.singleton.ChunkSizeXZ);
+            name = $"Chunk [{cX},{cZ}]";
+        });
 
         int depthY = 0;
 
@@ -81,8 +77,6 @@ public class GeneratorChunk : MonoBehaviour
                 depthY = 0;
             }
         }
-
-        yield return null;
 
         List<Vector3> vertices = new List<Vector3>();
         List<int> triangles = new List<int>();
@@ -246,21 +240,24 @@ public class GeneratorChunk : MonoBehaviour
             }
         }
 
-        Mesh tmpMesh = new Mesh();
+        UnityMainThreadDispatcher.Instance().Enqueue(() =>
+        {
+            Mesh tmpMesh = new Mesh();
 
-        tmpMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+            tmpMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
 
-        tmpMesh.SetVertices(vertices);
-        tmpMesh.SetUVs(0, uvs);
-        tmpMesh.SetTriangles(triangles, 0);
-        tmpMesh.RecalculateNormals();
+            tmpMesh.SetVertices(vertices);
+            tmpMesh.SetUVs(0, uvs);
+            tmpMesh.SetTriangles(triangles, 0);
+            tmpMesh.RecalculateNormals();
 
-        meshFilter.mesh = tmpMesh;
+            meshFilter.mesh = tmpMesh;
 
-        meshRenderer.enabled = true;
+            meshRenderer.enabled = true;
 
-        ChunkX = cX;
-        ChunkZ = cZ;
+            ChunkX = cX;
+            ChunkZ = cZ;
+        });
     }
 
 	public bool IfAir(int x, int y, int z)

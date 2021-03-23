@@ -35,6 +35,8 @@ public class GeneratorCore : MonoBehaviour
     public Vector2Int offset = new Vector2Int();
     Vector2Int _offset = new Vector2Int();
 
+    Thread regenThread;
+
     //public bool Test = false;
 
     private void Awake()
@@ -86,60 +88,62 @@ public class GeneratorCore : MonoBehaviour
         {
             _offset = offset;
 
-            StopAllCoroutines();
-            StartCoroutine(RegenrateChunks());
+            RegenrateChunks();
         }
     }
 
-    public IEnumerator RegenrateChunks()
+    public void RegenrateChunks()
 	{
-        yield return null;
+        if (regenThread != null && regenThread.IsAlive) regenThread.Abort();
 
-        Queue<GeneratorChunk> ChunksToRegenerate = new Queue<GeneratorChunk>();
-
-        foreach(GeneratorChunk gc in generatorChunks.GroupBy(x => new { x.ChunkX, x.ChunkZ }).Where(g => g.Count() > 1).Select(d => d.First()))
+        regenThread = new Thread(() =>
         {
-            ChunksToRegenerate.Enqueue(gc);
-        }
+            Queue<GeneratorChunk> ChunksToRegenerate = new Queue<GeneratorChunk>();
 
-        for (int i = 0; i < generatorChunks.Count; i++)
-        {
-            if (Math.Abs(generatorChunks[i].ChunkX - offset.x) > RenderDistance || Math.Abs(generatorChunks[i].ChunkZ - offset.y) > RenderDistance)
+            foreach (GeneratorChunk gc in generatorChunks.GroupBy(x => new { x.ChunkX, x.ChunkZ }).Where(g => g.Count() > 1).Select(d => d.First()))
             {
-                ChunksToRegenerate.Enqueue(generatorChunks[i]);
+                ChunksToRegenerate.Enqueue(gc);
             }
-        }
 
-        int spiralLength = (RenderDistance * 2) + 1;
-
-        int sx, sy, dx, dy;
-        sx = sy = dx = 0;
-        dy = -1;
-        int t = spiralLength;
-        int maxI = t * t;
-        for (int i = 0; i < maxI; i++)
-        {
-            if ((-spiralLength / 2 <= sx) && (sx <= spiralLength / 2) && (-spiralLength / 2 <= sy) && (sy <= spiralLength / 2))
+            for (int i = 0; i < generatorChunks.Count; i++)
             {
-                int x = sx + offset.x;
-                int z = sy + offset.y;
-
-                if (generatorChunks.FindIndex(f => f.ChunkX == x && f.ChunkZ == z) == -1 && ChunksToRegenerate.Count > 0)
+                if (Math.Abs(generatorChunks[i].ChunkX - offset.x) > RenderDistance || Math.Abs(generatorChunks[i].ChunkZ - offset.y) > RenderDistance)
                 {
-                    yield return null;
-                    ChunksToRegenerate.Dequeue().GenerateChunk(x, z);
-                    yield return null;
+                    ChunksToRegenerate.Enqueue(generatorChunks[i]);
                 }
             }
-            if ((sx == sy) || ((sx < 0) && (sx == -sy)) || ((sx > 0) && (sx == 1 - sy)))
+
+            int spiralLength = (RenderDistance * 2) + 1;
+
+            int sx, sy, dx, dy;
+            sx = sy = dx = 0;
+            dy = -1;
+            int t = spiralLength;
+            int maxI = t * t;
+            for (int i = 0; i < maxI; i++)
             {
-                t = dx;
-                dx = -dy;
-                dy = t;
+                if ((-spiralLength / 2 <= sx) && (sx <= spiralLength / 2) && (-spiralLength / 2 <= sy) && (sy <= spiralLength / 2))
+                {
+                    int x = sx + offset.x;
+                    int z = sy + offset.y;
+
+                    if (generatorChunks.FindIndex(f => f.ChunkX == x && f.ChunkZ == z) == -1 && ChunksToRegenerate.Count > 0)
+                    {
+                        ChunksToRegenerate.Dequeue().GenerateChunk(x, z);
+                    }
+                }
+                if ((sx == sy) || ((sx < 0) && (sx == -sy)) || ((sx > 0) && (sx == 1 - sy)))
+                {
+                    t = dx;
+                    dx = -dy;
+                    dy = t;
+                }
+                sx += dx;
+                sy += dy;
             }
-            sx += dx;
-            sy += dy;
-        }
+        });
+
+        regenThread.Start();
     }
 }
 
