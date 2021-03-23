@@ -454,7 +454,7 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  RenderDistance: 4
+  RenderDistance: 8
   ChunkSizeXZ: 16
   ChunkSizeY: 256
   NoiseScale: 0.15

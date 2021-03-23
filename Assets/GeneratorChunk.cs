@@ -91,17 +91,19 @@ public class GeneratorChunk : MonoBehaviour
             {
                 for (int y = 0; y < GeneratorCore.singleton.ChunkSizeY; y++)
                 {
-                    if (Blocks[x, y, z] != BlockType.Air)
+                    BlockType currBlock = Blocks[x, y, z];
+
+                    if (currBlock != BlockType.Air)
                     {
                         //X+
-                        if (IfAir(x + 1, y, z) || CheckIfWater(Blocks[x, y, z], x + 1, y, z))
+                        if (CheckIfFaceVisible(currBlock, x + 1, y, z))
                         {
                             vertices.Add(new Vector3(x + .5f, y - .5f, z - .5f));
                             vertices.Add(new Vector3(x + .5f, y + .5f, z - .5f));
                             vertices.Add(new Vector3(x + .5f, y + .5f, z + .5f));
                             vertices.Add(new Vector3(x + .5f, y - .5f, z + .5f));
 
-                            atlasCoords = Atlas.Cords[(int)Blocks[x, y, z] - 1, 0];
+                            atlasCoords = Atlas.Cords[(int)currBlock - 1, 0];
                             uvs.Add(new Vector2(atlasCoords.x * grid, atlasCoords.y * grid));
                             uvs.Add(new Vector2(atlasCoords.x * grid, (atlasCoords.y + 1) * grid));
                             uvs.Add(new Vector2((atlasCoords.x + 1) * grid, (atlasCoords.y + 1) * grid));
@@ -122,14 +124,14 @@ public class GeneratorChunk : MonoBehaviour
                         }
 
                         //X-
-                        if (IfAir(x - 1, y, z) || CheckIfWater(Blocks[x, y, z], x - 1, y, z))
+                        if (CheckIfFaceVisible(currBlock, x - 1, y, z))
                         {
                             vertices.Add(new Vector3(x - .5f, y - .5f, z - .5f));
                             vertices.Add(new Vector3(x - .5f, y + .5f, z - .5f));
                             vertices.Add(new Vector3(x - .5f, y + .5f, z + .5f));
                             vertices.Add(new Vector3(x - .5f, y - .5f, z + .5f));
 
-                            atlasCoords = Atlas.Cords[(int)Blocks[x, y, z] - 1, 1];
+                            atlasCoords = Atlas.Cords[(int)currBlock - 1, 1];
                             uvs.Add(new Vector2(atlasCoords.x * grid, atlasCoords.y * grid));
                             uvs.Add(new Vector2(atlasCoords.x * grid, (atlasCoords.y + 1) * grid));
                             uvs.Add(new Vector2((atlasCoords.x + 1) * grid, (atlasCoords.y + 1) * grid));
@@ -145,14 +147,14 @@ public class GeneratorChunk : MonoBehaviour
                         }
 
                         //Y+
-                        if (IfAir(x, y + 1, z) || CheckIfWater(Blocks[x, y, z], x, y + 1, z))
+                        if (CheckIfFaceVisible(currBlock, x, y + 1, z))
                         {
                             vertices.Add(new Vector3(x + .5f, y + .5f, z - .5f));
                             vertices.Add(new Vector3(x - .5f, y + .5f, z - .5f));
                             vertices.Add(new Vector3(x - .5f, y + .5f, z + .5f));
                             vertices.Add(new Vector3(x + .5f, y + .5f, z + .5f));
 
-                            atlasCoords = Atlas.Cords[(int)Blocks[x, y, z] - 1, 2];
+                            atlasCoords = Atlas.Cords[(int)currBlock - 1, 2];
                             uvs.Add(new Vector2(atlasCoords.x * grid, atlasCoords.y * grid));
                             uvs.Add(new Vector2(atlasCoords.x * grid, (atlasCoords.y + 1) * grid));
                             uvs.Add(new Vector2((atlasCoords.x + 1) * grid, (atlasCoords.y + 1) * grid));
@@ -168,14 +170,14 @@ public class GeneratorChunk : MonoBehaviour
                         }
 
                         //Y-
-                        if (IfAir(x, y - 1, z) || CheckIfWater(Blocks[x, y, z], x, y - 1, z))
+                        if (CheckIfFaceVisible(currBlock, x, y - 1, z))
                         {
                             vertices.Add(new Vector3(x + .5f, y - .5f, z - .5f));
                             vertices.Add(new Vector3(x - .5f, y - .5f, z - .5f));
                             vertices.Add(new Vector3(x - .5f, y - .5f, z + .5f));
                             vertices.Add(new Vector3(x + .5f, y - .5f, z + .5f));
 
-                            atlasCoords = Atlas.Cords[(int)Blocks[x, y, z] - 1, 3];
+                            atlasCoords = Atlas.Cords[(int)currBlock - 1, 3];
                             uvs.Add(new Vector2(atlasCoords.x * grid, atlasCoords.y * grid));
                             uvs.Add(new Vector2(atlasCoords.x * grid, (atlasCoords.y + 1) * grid));
                             uvs.Add(new Vector2((atlasCoords.x + 1) * grid, (atlasCoords.y + 1) * grid));
@@ -191,14 +193,14 @@ public class GeneratorChunk : MonoBehaviour
                         }
 
                         //Z+
-                        if (IfAir(x, y, z + 1) || CheckIfWater(Blocks[x, y, z], x, y, z + 1))
+                        if (CheckIfFaceVisible(currBlock, x, y, z + 1))
                         {
                             vertices.Add(new Vector3(x + .5f, y - .5f, z + .5f));
                             vertices.Add(new Vector3(x + .5f, y + .5f, z + .5f));
                             vertices.Add(new Vector3(x - .5f, y + .5f, z + .5f));
                             vertices.Add(new Vector3(x - .5f, y - .5f, z + .5f));
 
-                            atlasCoords = Atlas.Cords[(int)Blocks[x, y, z] - 1, 4];
+                            atlasCoords = Atlas.Cords[(int)currBlock - 1, 4];
                             uvs.Add(new Vector2(atlasCoords.x * grid, atlasCoords.y * grid));
                             uvs.Add(new Vector2(atlasCoords.x * grid, (atlasCoords.y + 1) * grid));
                             uvs.Add(new Vector2((atlasCoords.x + 1) * grid, (atlasCoords.y + 1) * grid));
@@ -214,14 +216,14 @@ public class GeneratorChunk : MonoBehaviour
                         }
 
                         //Z-
-                        if (IfAir(x, y, z - 1) || CheckIfWater(Blocks[x, y, z], x, y, z - 1))
+                        if (CheckIfFaceVisible(currBlock, x, y, z - 1))
                         {
                             vertices.Add(new Vector3(x + .5f, y - .5f, z - .5f));
                             vertices.Add(new Vector3(x + .5f, y + .5f, z - .5f));
                             vertices.Add(new Vector3(x - .5f, y + .5f, z - .5f));
                             vertices.Add(new Vector3(x - .5f, y - .5f, z - .5f));
 
-                            atlasCoords = Atlas.Cords[(int)Blocks[x, y, z] - 1, 5];
+                            atlasCoords = Atlas.Cords[(int)currBlock - 1, 5];
                             uvs.Add(new Vector2(atlasCoords.x * grid, atlasCoords.y * grid));
                             uvs.Add(new Vector2(atlasCoords.x * grid, (atlasCoords.y + 1) * grid));
                             uvs.Add(new Vector2((atlasCoords.x + 1) * grid, (atlasCoords.y + 1) * grid));
@@ -260,28 +262,12 @@ public class GeneratorChunk : MonoBehaviour
         });
     }
 
-	public bool IfAir(int x, int y, int z)
-    {
+    public bool CheckIfFaceVisible(BlockType currBlock, int x, int y, int z)
+	{
         if (x >= GeneratorCore.singleton.ChunkSizeXZ || y >= GeneratorCore.singleton.ChunkSizeY || z >= GeneratorCore.singleton.ChunkSizeXZ) return true;
         if (x < 0 || y < 0 || z < 0) return true;
 
-        return Blocks[x, y, z] == BlockType.Air;
-    }
-
-    public bool CheckIfWater(BlockType blockType, int x, int y, int z)
-    {
-        if (blockType != BlockType.Water)
-        {
-            if (x >= GeneratorCore.singleton.ChunkSizeXZ || y >= GeneratorCore.singleton.ChunkSizeY || z >= GeneratorCore.singleton.ChunkSizeXZ) return true;
-            if (x < 0 || y < 0 || z < 0) return true;
-
-            if (Blocks[x, y, z] == BlockType.Water)
-            {
-                return true;
-            }
-        }
-
-        return false;
+        return Blocks[x, y, z] == BlockType.Air || (currBlock != BlockType.Water && Blocks[x, y, z] == BlockType.Water);
     }
 
     public Vector3 GetLocalChunksBlockCords(int x, int y, int z, int cX, int cZ)
