@@ -36,7 +36,11 @@ public class GeneratorChunk : MonoBehaviour
             {
                 for (int y = GeneratorCore.singleton.ChunkSizeY - 1; y >= 0; y--)
                 {
-                    float noiseValue = GeneratorCore.fn.GetNoise(x * GeneratorCore.singleton.NoiseScale, y * GeneratorCore.singleton.NoiseScale, z * GeneratorCore.singleton.NoiseScale);
+                    //float noiseValue = GeneratorCore.fn.GetNoise(x * GeneratorCore.singleton.NoiseScale, y * GeneratorCore.singleton.NoiseScale, z * GeneratorCore.singleton.NoiseScale);
+
+                    //float noiseValue = Noise3D(x * GeneratorCore.singleton.NoiseScale, y * GeneratorCore.singleton.NoiseScale, z * GeneratorCore.singleton.NoiseScale, GeneratorCore.singleton.NoiseFrequency, GeneratorCore.singleton.NoiseAmplitude, GeneratorCore.singleton.NoisePersistance, GeneratorCore.singleton.NoiseOctaves, GeneratorCore.singleton.NoiseSeed);
+                    //float noiseValue = (float)Simplex.SimplexNoise3D(x * GeneratorCore.singleton.NoiseScale, y * GeneratorCore.singleton.NoiseScale, z * GeneratorCore.singleton.NoiseScale);
+                    float noiseValue = (float)GeneratorCore.singleton.simplex.GetValue(x * GeneratorCore.singleton.NoiseScale, y * GeneratorCore.singleton.NoiseScale, z * GeneratorCore.singleton.NoiseScale);
 
                     Vector3 local = GetLocalChunksBlockCords(x, y, z, cX, cZ);
                     int lx = (int)local.x;

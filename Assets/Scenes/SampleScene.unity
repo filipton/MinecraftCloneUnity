@@ -322,8 +322,8 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 734620686}
-  - component: {fileID: 734620684}
   - component: {fileID: 734620685}
+  - component: {fileID: 734620684}
   m_Layer: 0
   m_Name: Generator
   m_TagString: Untagged
@@ -338,7 +338,7 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 734620683}
-  m_Enabled: 1
+  m_Enabled: 0
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 44fdce41359140f45a2fd69ba0f8548f, type: 3}
   m_Name: 
@@ -379,9 +379,9 @@ MonoBehaviour:
     m_RotationOrder: 4
   materialTerrain: {fileID: 2100000, guid: 5c816ae44b9ab864a9810e4fa6878b2a, type: 2}
   Light: 0
-  SizeXZ: 512
+  SizeXZ: 256
   SizeY: 256
-  scale: 0.000025
+  scale: 0.7
   freq: 0.00522
   ampl: 1.8
   persistance: 1
@@ -397,40 +397,56 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 734620683}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 6462d688a216a8148aec3cd21c5003ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Seed: BRUH
-  NoiseScale: 0.7
-  Noise: {fileID: 11400000, guid: 51417b0b3a084c74fb700c032866fbfb, type: 2}
+  Seed: 0
   GeneratorCurve:
     serializedVersion: 2
     m_Curve:
     - serializedVersion: 3
       time: 0.0041656494
-      value: -0.9811554
-      inSlope: 3.4351432
-      outSlope: 3.4351432
+      value: -1.9956532
+      inSlope: 0.051640306
+      outSlope: 0.051640306
       tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 0.51299167
-      value: 0.76673484
-      inSlope: 0.97776926
-      outSlope: 0.97776926
+      time: 0.108600125
+      value: -1.9902601
+      inSlope: -0.019610839
+      outSlope: -0.019610839
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.9533011
+    - serializedVersion: 3
+      time: 0.3047147
+      value: 1.3105127
+      inSlope: 8.324043
+      outSlope: 8.324043
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.77514833
+    - serializedVersion: 3
+      time: 0.3826511
+      value: 1.7125509
+      inSlope: 1.8450654
+      outSlope: 1.8450654
       tangentMode: 0
       weightedMode: 0
       inWeight: 1
-      outWeight: 0.26627535
+      outWeight: 0.20217083
     - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 0.4789757
-      outSlope: 0.4789757
+      time: 1.0068359
+      value: 2.0019531
+      inSlope: 0.46364832
+      outSlope: 0.46364832
       tangentMode: 34
       weightedMode: 0
       inWeight: 0.33333334
@@ -441,11 +457,11 @@ MonoBehaviour:
   RenderDistance: 4
   ChunkSizeXZ: 16
   ChunkSizeY: 256
+  NoiseScale: 0.15
   TextureMaterial: {fileID: 2100000, guid: 5c816ae44b9ab864a9810e4fa6878b2a, type: 2}
   atlasSize: 4
   generatorChunks: []
   offset: {x: 0, y: 0}
-  Test: 0
 --- !u!4 &734620686
 Transform:
   m_ObjectHideFlags: 0

@@ -9,6 +9,7 @@ public class TestCube : MonoBehaviour
     public static TestCube instance;
 
     public FastNoiseExtension noise;
+    public Simplex simplex;
 
     public AnimationCurve terrainElev;
     public Material materialTerrain;
@@ -32,33 +33,6 @@ public class TestCube : MonoBehaviour
     public bool GenAgain = false;
     public bool done = false;
 
-    public static float Noise3D(float x, float y, float z, float frequency, float amplitude, float persistence, int octave, int seed)
-    {
-        float noise = 0.0f;
-
-        for (int i = 0; i < octave; ++i)
-        {
-            // Get all permutations of noise for each individual axis
-            float noiseXY = Mathf.PerlinNoise(x * frequency + seed, y * frequency + seed) * amplitude;
-            float noiseXZ = Mathf.PerlinNoise(x * frequency + seed, z * frequency + seed) * amplitude;
-            float noiseYZ = Mathf.PerlinNoise(y * frequency + seed, z * frequency + seed) * amplitude;
-
-            // Reverse of the permutations of noise for each individual axis
-            float noiseYX = Mathf.PerlinNoise(y * frequency + seed, x * frequency + seed) * amplitude;
-            float noiseZX = Mathf.PerlinNoise(z * frequency + seed, x * frequency + seed) * amplitude;
-            float noiseZY = Mathf.PerlinNoise(z * frequency + seed, y * frequency + seed) * amplitude;
-
-            // Use the average of the noise functions
-            noise += (noiseXY + noiseXZ + noiseYZ + noiseYX + noiseZX + noiseZY) / 6.0f;
-
-            amplitude *= persistence;
-            frequency *= 2.0f;
-        }
-
-        // Use the average of all octaves
-        return noise / octave;
-    }
-
 	public void Start()
 	{
         StartGen();
@@ -73,6 +47,8 @@ public class TestCube : MonoBehaviour
         DeleteChunks();
 
         FastNoiseLite fn = noise.GetLibInstance(3245654);
+        simplex = new Simplex();
+        simplex.Frequency = 0.00522D;
 
         new Thread(() =>
         {
@@ -87,7 +63,7 @@ public class TestCube : MonoBehaviour
                     for (int y = SizeY - 1; y >= 0; y--)
                     {
                         //float noiseValue = Noise3D(x, y, z, 0.005f, 1.2f, 1, 3, 0);
-                        float noiseValue = Noise3D(x * scale, y * scale, z * scale, freq, ampl, persistance, Octave, seed);
+                        float noiseValue = (float)simplex.GetValue(x * scale, y * scale, z * scale);
 
                         if (noiseValue >= terrainElev.Evaluate(y / ((float)SizeY)))
                         {

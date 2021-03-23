@@ -4,19 +4,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Threading;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class GeneratorCore : MonoBehaviour
 {
     public static GeneratorCore singleton { get; set; }
 
-    public string Seed;
+    public int Seed;
 
     [Header("Generator Settings")]
-    public float NoiseScale = 1f;
-    public FastNoiseExtension Noise;
-    public static FastNoiseLite fn;
-
+    public Simplex simplex;
     public AnimationCurve GeneratorCurve;
 
     public int RenderDistance = 8;
@@ -24,6 +23,8 @@ public class GeneratorCore : MonoBehaviour
     public int ChunkSizeXZ = 16;
     public int ChunkSizeY = 256;
 
+    [Header("Noise Settings")]
+    public float NoiseScale = 1;
 
     [Header("Textures Settings")]
     public Material TextureMaterial;
@@ -34,7 +35,7 @@ public class GeneratorCore : MonoBehaviour
     public Vector2Int offset = new Vector2Int();
     Vector2Int _offset = new Vector2Int();
 
-    public bool Test = false;
+    //public bool Test = false;
 
     private void Awake()
 	{
@@ -43,23 +44,15 @@ public class GeneratorCore : MonoBehaviour
 
 	private void Start()
 	{
-        GenerateWorld(Seed);
+        simplex = new Simplex();
+        simplex.OctaveCount = 8;
+        simplex.Seed = Seed;
+
+        GenerateWorld();
     }
 
-	void GenerateWorld(string seed)
+	void GenerateWorld()
 	{
-        int _seed = 0;
-        if(seed == "")
-		{
-            seed = UnityEngine.Random.Range(-900000, 900000).ToString();
-		}
-
-        MD5 md5 = MD5.Create();
-        byte[] hash = md5.ComputeHash(Encoding.UTF8.GetBytes(seed));
-        _seed = BitConverter.ToInt32(hash, 0);
-
-        fn = Noise.GetLibInstance(_seed);
-
         for(int x = -RenderDistance; x <= RenderDistance; x++)
 		{
             for (int z = -RenderDistance; z <= RenderDistance; z++)
@@ -100,6 +93,8 @@ public class GeneratorCore : MonoBehaviour
 
     public IEnumerator RegenrateChunks()
 	{
+        yield return null;
+
         Queue<GeneratorChunk> ChunksToRegenerate = new Queue<GeneratorChunk>();
 
         foreach(GeneratorChunk gc in generatorChunks.GroupBy(x => new { x.ChunkX, x.ChunkZ }).Where(g => g.Count() > 1).Select(d => d.First()))
