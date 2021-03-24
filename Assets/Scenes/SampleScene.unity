@@ -349,27 +349,45 @@ MonoBehaviour:
     m_Curve:
     - serializedVersion: 3
       time: 0.0041656494
-      value: -0.9811554
-      inSlope: 6.2330093
-      outSlope: 6.2330093
+      value: -1.9956532
+      inSlope: 0.051640306
+      outSlope: 0.051640306
       tangentMode: 34
       weightedMode: 0
       inWeight: 0
       outWeight: 0.33333334
     - serializedVersion: 3
-      time: 0.2905869
-      value: 0.8041109
-      inSlope: 0.97776926
-      outSlope: 0.97776926
+      time: 0.108600125
+      value: -1.9902601
+      inSlope: -0.019610839
+      outSlope: -0.019610839
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.9533011
+    - serializedVersion: 3
+      time: 0.3047147
+      value: 1.3105127
+      inSlope: 8.324043
+      outSlope: 8.324043
+      tangentMode: 0
+      weightedMode: 0
+      inWeight: 0.33333334
+      outWeight: 0.77514833
+    - serializedVersion: 3
+      time: 0.3826511
+      value: 1.7125509
+      inSlope: 1.8450654
+      outSlope: 1.8450654
       tangentMode: 0
       weightedMode: 0
       inWeight: 1
-      outWeight: 0.26627535
+      outWeight: 0.20217083
     - serializedVersion: 3
-      time: 1
-      value: 1
-      inSlope: 0.2761284
-      outSlope: 0.2761284
+      time: 1.0068359
+      value: 2.0019531
+      inSlope: 0.46364832
+      outSlope: 0.46364832
       tangentMode: 34
       weightedMode: 0
       inWeight: 0.33333334
@@ -402,7 +420,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6462d688a216a8148aec3cd21c5003ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Seed: -76574
+  Seed: 2334
   GeneratorCurve:
     serializedVersion: 2
     m_Curve:

@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -16,13 +17,11 @@ public class GeneratorChunk : MonoBehaviour
 
     public void GenerateChunk(int cX, int cZ)
 	{
-        UnityMainThreadDispatcher.Instance().Enqueue(() =>
-        {
-            meshRenderer.enabled = false;
+        AnimationCurve genCurve = new AnimationCurve();
+        genCurve.keys = GeneratorCore.singleton.GeneratorCurve.keys;
 
-            transform.position = new Vector3(cX * GeneratorCore.singleton.ChunkSizeXZ, 0, cZ * GeneratorCore.singleton.ChunkSizeXZ);
-            name = $"Chunk [{cX},{cZ}]";
-        });
+        ChunkX = cX;
+        ChunkZ = cZ;
 
         int depthY = 0;
 
@@ -32,10 +31,6 @@ public class GeneratorChunk : MonoBehaviour
             {
                 for (int y = GeneratorCore.singleton.ChunkSizeY - 1; y >= 0; y--)
                 {
-                    //float noiseValue = GeneratorCore.fn.GetNoise(x * GeneratorCore.singleton.NoiseScale, y * GeneratorCore.singleton.NoiseScale, z * GeneratorCore.singleton.NoiseScale);
-
-                    //float noiseValue = Noise3D(x * GeneratorCore.singleton.NoiseScale, y * GeneratorCore.singleton.NoiseScale, z * GeneratorCore.singleton.NoiseScale, GeneratorCore.singleton.NoiseFrequency, GeneratorCore.singleton.NoiseAmplitude, GeneratorCore.singleton.NoisePersistance, GeneratorCore.singleton.NoiseOctaves, GeneratorCore.singleton.NoiseSeed);
-                    //float noiseValue = (float)Simplex.SimplexNoise3D(x * GeneratorCore.singleton.NoiseScale, y * GeneratorCore.singleton.NoiseScale, z * GeneratorCore.singleton.NoiseScale);
                     float noiseValue = (float)GeneratorCore.singleton.simplex.GetValue(x * GeneratorCore.singleton.NoiseScale, y * GeneratorCore.singleton.NoiseScale, z * GeneratorCore.singleton.NoiseScale);
 
                     Vector3 local = GetLocalChunksBlockCords(x, y, z, cX, cZ);
@@ -43,7 +38,7 @@ public class GeneratorChunk : MonoBehaviour
                     int ly = (int)local.y;
                     int lz = (int)local.z;
 
-                    if (noiseValue >= GeneratorCore.singleton.GeneratorCurve.Evaluate(y / ((float)GeneratorCore.singleton.ChunkSizeY)))
+                    if (noiseValue >= genCurve.Evaluate(y / ((float)GeneratorCore.singleton.ChunkSizeY)))
                     {
                         if (depthY == 0)
                         {
@@ -244,21 +239,18 @@ public class GeneratorChunk : MonoBehaviour
 
         UnityMainThreadDispatcher.Instance().Enqueue(() =>
         {
-            Mesh tmpMesh = new Mesh();
+            name = $"Chunk [{cX},{cZ}]";
 
-            tmpMesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+            meshFilter.mesh.Clear();
 
-            tmpMesh.SetVertices(vertices);
-            tmpMesh.SetUVs(0, uvs);
-            tmpMesh.SetTriangles(triangles, 0);
-            tmpMesh.RecalculateNormals();
+            meshFilter.mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
 
-            meshFilter.mesh = tmpMesh;
+            meshFilter.mesh.SetVertices(vertices);
+            meshFilter.mesh.SetUVs(0, uvs);
+            meshFilter.mesh.SetTriangles(triangles, 0);
+            meshFilter.mesh.RecalculateNormals();
 
-            meshRenderer.enabled = true;
-
-            ChunkX = cX;
-            ChunkZ = cZ;
+            transform.position = new Vector3(cX * GeneratorCore.singleton.ChunkSizeXZ, 0, cZ * GeneratorCore.singleton.ChunkSizeXZ);
         });
     }
 

@@ -130,7 +130,12 @@ public class GeneratorCore : MonoBehaviour
 
                     if (generatorChunks.FindIndex(f => f.ChunkX == x && f.ChunkZ == z) == -1 && ChunksToRegenerate.Count > 0)
                     {
-                        ChunksToRegenerate.Dequeue().GenerateChunk(x, z);
+                        Task.Run(() =>
+                        {
+                            ChunksToRegenerate.Dequeue().GenerateChunk(x, z);
+                        });
+
+                        Thread.Sleep(10);
                     }
                 }
                 if ((sx == sy) || ((sx < 0) && (sx == -sy)) || ((sx > 0) && (sx == 1 - sy)))

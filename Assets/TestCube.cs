@@ -35,10 +35,38 @@ public class TestCube : MonoBehaviour
     public bool GenAgain = false;
     public bool done = false;
 
-	public void Start()
+    public void Start()
 	{
-        StartGen();
-	}
+        simplex = new Simplex();
+
+        for(int i = 0; i < 2; i++)
+		{
+            new Thread(() =>
+            {
+                for (int x = 0; x < SizeXZ; x++)
+                {
+                    for (int z = 0; z < SizeXZ; z++)
+                    {
+                        for (int y = SizeY - 1; y >= 0; y--)
+                        {
+                            //float noiseValue = GeneratorCore.fn.GetNoise(x * GeneratorCore.singleton.NoiseScale, y * GeneratorCore.singleton.NoiseScale, z * GeneratorCore.singleton.NoiseScale);
+
+                            //float noiseValue = Noise3D(x * GeneratorCore.singleton.NoiseScale, y * GeneratorCore.singleton.NoiseScale, z * GeneratorCore.singleton.NoiseScale, GeneratorCore.singleton.NoiseFrequency, GeneratorCore.singleton.NoiseAmplitude, GeneratorCore.singleton.NoisePersistance, GeneratorCore.singleton.NoiseOctaves, GeneratorCore.singleton.NoiseSeed);
+                            //float noiseValue = (float)Simplex.SimplexNoise3D(x * GeneratorCore.singleton.NoiseScale, y * GeneratorCore.singleton.NoiseScale, z * GeneratorCore.singleton.NoiseScale);
+                            float noiseValue = (float)simplex.GetValue(x * scale, y * scale, z * scale);
+
+                            if (noiseValue >= terrainElev.Evaluate(y / ((float)SizeY)))
+                            {
+                                print(noiseValue);
+                            }
+                        }
+                    }
+                }
+            }).Start();
+        }
+
+        //StartGen();
+    }
 
 	// Start is called before the first frame update
 	private void StartGen()
