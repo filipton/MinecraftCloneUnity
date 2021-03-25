@@ -7,13 +7,9 @@ public class PlayerController : MonoBehaviour
     public float rotationspeed = 60;
     public float FlyingSpeed = 20;
 
-    public CharacterController Controller;
-
     // Start is called before the first frame update
     void Start()
     {
-        Controller = GetComponentInParent<CharacterController>();
-
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
     }
@@ -22,29 +18,29 @@ public class PlayerController : MonoBehaviour
     void Update()
     {
         //Pitch rotates the camera around its local Right axis
-        transform.Rotate(Vector3.left * Time.deltaTime * Input.GetAxis("Mouse Y") * rotationspeed);
+        transform.Rotate(Vector3.left * Input.GetAxis("Mouse Y") * rotationspeed);
 
         //Yaw rotates the camera around its local Up axis
-        transform.Rotate(Vector3.up * Time.deltaTime * Input.GetAxis("Mouse X") * rotationspeed);
+        transform.Rotate(Vector3.up * Input.GetAxis("Mouse X") * rotationspeed);
     }
 
     private void FixedUpdate()
     {
         if (Input.GetKey(KeyCode.W))
         {
-            Controller.Move(transform.forward * FlyingSpeed * Time.deltaTime);
+            transform.position += transform.forward * FlyingSpeed;
         }
         if (Input.GetKey(KeyCode.S))
         {
-            Controller.Move(-transform.forward * FlyingSpeed * Time.deltaTime);
+            transform.position -= transform.forward * FlyingSpeed;
         }
         if (Input.GetKey(KeyCode.A))
         {
-            Controller.Move(-transform.right * FlyingSpeed * Time.deltaTime);
+            transform.position -= transform.right * FlyingSpeed;
         }
         if (Input.GetKey(KeyCode.D))
         {
-            Controller.Move(transform.right * FlyingSpeed * Time.deltaTime);
+            transform.position += transform.right * FlyingSpeed;
         }
     }
 }

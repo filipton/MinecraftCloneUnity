@@ -420,7 +420,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6462d688a216a8148aec3cd21c5003ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Seed: 2334
+  Seed: 0
   GeneratorCurve:
     serializedVersion: 2
     m_Curve:
@@ -443,8 +443,8 @@ MonoBehaviour:
       inWeight: 0.33333334
       outWeight: 0.9533011
     - serializedVersion: 3
-      time: 0.3047147
-      value: 1.3105127
+      time: 0.29794106
+      value: 0.27670354
       inSlope: 8.324043
       outSlope: 8.324043
       tangentMode: 0
@@ -452,8 +452,8 @@ MonoBehaviour:
       inWeight: 0.33333334
       outWeight: 0.77514833
     - serializedVersion: 3
-      time: 0.3826511
-      value: 1.7125509
+      time: 0.37587744
+      value: 0.67874175
       inSlope: 1.8450654
       outSlope: 1.8450654
       tangentMode: 0
@@ -461,10 +461,10 @@ MonoBehaviour:
       inWeight: 1
       outWeight: 0.20217083
     - serializedVersion: 3
-      time: 1.0068359
-      value: 2.0019531
-      inSlope: 0.46364832
-      outSlope: 0.46364832
+      time: 1.0000622
+      value: 1.9998177
+      inSlope: 2.116482
+      outSlope: 2.116482
       tangentMode: 34
       weightedMode: 0
       inWeight: 0.33333334
@@ -472,14 +472,16 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
-  RenderDistance: 8
+  RenderDistance: 16
   ChunkSizeXZ: 16
   ChunkSizeY: 256
-  NoiseScale: 0.15
+  NoiseScaleXZ: 0.15
+  NoiseScaleY: 0.15
   TextureMaterial: {fileID: 2100000, guid: 5c816ae44b9ab864a9810e4fa6878b2a, type: 2}
   atlasSize: 4
   generatorChunks: []
-  offset: {x: 0, y: 0}
+  player: {fileID: 1883350661}
+  _offset: {x: 0, y: 0}
 --- !u!4 &734620686
 Transform:
   m_ObjectHideFlags: 0
@@ -602,6 +604,7 @@ GameObject:
   - component: {fileID: 1883350661}
   - component: {fileID: 1883350660}
   - component: {fileID: 1883350659}
+  - component: {fileID: 1883350662}
   m_Layer: 0
   m_Name: Camera
   m_TagString: Untagged
@@ -667,10 +670,24 @@ Transform:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1883350658}
-  m_LocalRotation: {x: 0.24532053, y: 0.6631877, z: -0.24532053, w: 0.6631877}
-  m_LocalPosition: {x: -238.2, y: 282.6, z: 277.9}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 256, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 2
-  m_LocalEulerAnglesHint: {x: 40.6, y: 90, z: 0}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &1883350662
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1883350658}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f5624dea1b1693c44a99385bccc4eb22, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  rotationspeed: 0.8
+  FlyingSpeed: 20

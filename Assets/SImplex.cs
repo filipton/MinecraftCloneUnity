@@ -271,7 +271,7 @@ public class Simplex
     /// </remarks>
     public double Persistence { get; set; } = DefaultPersistence;
 
-    public int Seed { get; set; }
+    public double Seed { get; set; }
 
     /// <summary>
     /// See documentation on the base class

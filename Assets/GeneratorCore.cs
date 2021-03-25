@@ -12,7 +12,7 @@ public class GeneratorCore : MonoBehaviour
 {
     public static GeneratorCore singleton { get; set; }
 
-    public int Seed;
+    public double Seed;
 
     [Header("Generator Settings")]
     public Simplex simplex;
@@ -24,7 +24,8 @@ public class GeneratorCore : MonoBehaviour
     public int ChunkSizeY = 256;
 
     [Header("Noise Settings")]
-    public float NoiseScale = 1;
+    public float NoiseScaleXZ = 1;
+    public float NoiseScaleY = 1;
 
     [Header("Textures Settings")]
     public Material TextureMaterial;
@@ -32,8 +33,8 @@ public class GeneratorCore : MonoBehaviour
 
     [Header("Generator Fields")]
     public List<GeneratorChunk> generatorChunks = new List<GeneratorChunk>();
-    public Vector2Int offset = new Vector2Int();
-    Vector2Int _offset = new Vector2Int();
+    public Transform player;
+    public Vector2Int _offset = new Vector2Int();
 
     Thread regenThread;
 
@@ -42,6 +43,10 @@ public class GeneratorCore : MonoBehaviour
     private void Awake()
 	{
         singleton = this;
+        if(Seed == 0)
+		{
+            Seed = UnityEngine.Random.Range(-320000000, 320000000);
+		}
 	}
 
 	private void Start()
@@ -72,22 +77,22 @@ public class GeneratorCore : MonoBehaviour
                 gc.meshRenderer = mr;
 
                 generatorChunks.Add(gc);
-                gc.GenerateChunk(x + offset.x, z + offset.y);
-                yield return null;
+                Task.Run(() =>
+                {
+                    gc.GenerateChunk(x + _offset.x, z + _offset.y);
+                });
+                yield return new WaitForSeconds(0.010f);
             }
         }
     }
 
 	private void Update()
 	{
-        if (Input.GetKeyDown(KeyCode.W)) offset += new Vector2Int(1, 0);
-        else if (Input.GetKeyDown(KeyCode.S)) offset += new Vector2Int(-1, 0);
-        else if (Input.GetKeyDown(KeyCode.A)) offset += new Vector2Int(0, 1);
-        else if (Input.GetKeyDown(KeyCode.D)) offset += new Vector2Int(0, -1);
+        Vector2Int v2int = new Vector2Int(Mathf.FloorToInt((player.position.x + 0.5f) / ChunkSizeXZ), Mathf.FloorToInt((player.position.z + 0.5f) / ChunkSizeXZ));
 
-        if (offset != _offset)
+        if (v2int != _offset)
         {
-            _offset = offset;
+            _offset = v2int;
 
             RegenrateChunks();
         }
@@ -101,14 +106,14 @@ public class GeneratorCore : MonoBehaviour
         {
             Queue<GeneratorChunk> ChunksToRegenerate = new Queue<GeneratorChunk>();
 
-            foreach (GeneratorChunk gc in generatorChunks.GroupBy(x => new { x.ChunkX, x.ChunkZ }).Where(g => g.Count() > 1).Select(d => d.First()))
+            foreach (GeneratorChunk gc in generatorChunks.GroupBy(x => new { x.ChunkX, x.ChunkZ }).Where(g => g.Count() > 1).Select(d => d.First()).ToArray())
             {
                 ChunksToRegenerate.Enqueue(gc);
             }
 
             for (int i = 0; i < generatorChunks.Count; i++)
             {
-                if (Math.Abs(generatorChunks[i].ChunkX - offset.x) > RenderDistance || Math.Abs(generatorChunks[i].ChunkZ - offset.y) > RenderDistance)
+                if (Math.Abs(generatorChunks[i].ChunkX - _offset.x) > RenderDistance || Math.Abs(generatorChunks[i].ChunkZ - _offset.y) > RenderDistance)
                 {
                     ChunksToRegenerate.Enqueue(generatorChunks[i]);
                 }
@@ -125,8 +130,8 @@ public class GeneratorCore : MonoBehaviour
             {
                 if ((-spiralLength / 2 <= sx) && (sx <= spiralLength / 2) && (-spiralLength / 2 <= sy) && (sy <= spiralLength / 2))
                 {
-                    int x = sx + offset.x;
-                    int z = sy + offset.y;
+                    int x = sx + _offset.x;
+                    int z = sy + _offset.y;
 
                     if (generatorChunks.FindIndex(f => f.ChunkX == x && f.ChunkZ == z) == -1 && ChunksToRegenerate.Count > 0)
                     {
