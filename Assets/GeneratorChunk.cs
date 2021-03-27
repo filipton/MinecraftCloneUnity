@@ -9,6 +9,7 @@ public class GeneratorChunk : MonoBehaviour
 {
     public MeshFilter meshFilter;
     public MeshRenderer meshRenderer;
+    public MeshCollider meshCollider;
 
     public int ChunkX;
     public int ChunkZ;
@@ -73,9 +74,51 @@ public class GeneratorChunk : MonoBehaviour
             }
         }
 
+        GenerateChunkMesh();
+    }
+
+    public void SetBlockLocal(int localX, int localY, int localZ, BlockType blockToSet)
+	{
+        Blocks[localX,localY,localZ] = blockToSet;
+
+        Task.Run(() =>
+        {
+            RegenerateChunk();
+        });
+	}
+    public void SetBlockGlobal(int gloablX, int gloablY, int gloablZ, BlockType blockToSet)
+    {
+        Vector3 local = GetLocalChunksBlockCords(gloablX, gloablY, gloablZ, ChunkX, ChunkZ);
+        Blocks[(int)local.x, (int)local.y, (int)local.z] = blockToSet;
+
+        Task.Run(() =>
+        {
+            RegenerateChunk();
+        });
+    }
+
+    public void GenerateChunkFromBlocks(int cX, int cZ, BlockType[,,] blocks)
+    {
+        Blocks = blocks;
+        ChunkX = cX;
+        ChunkZ = cZ;
+
+        GenerateChunkMesh();
+    }
+
+    public void RegenerateChunk(BlockType[,,] blocks = null)
+	{
+        if(blocks != null) Blocks = blocks;
+
+        GenerateChunkMesh();
+	}
+
+    public void GenerateChunkMesh()
+	{
         List<Vector3> vertices = new List<Vector3>();
         List<int> triangles = new List<int>();
         List<Vector2> uvs = new List<Vector2>();
+        List<Color> colors = new List<Color>();
 
         Vector2 atlasCoords;
         float grid = 1f / GeneratorCore.singleton.atlasSize;
@@ -90,6 +133,12 @@ public class GeneratorChunk : MonoBehaviour
 
                     if (currBlock != BlockType.Air)
                     {
+                        float lightLevel = 1f;
+                        if(CheckIfShadow(x, y, z))
+						{
+                            lightLevel = 0.4f;
+						}
+
                         //X+
                         if (CheckIfFaceVisible(currBlock, x + 1, y, z))
                         {
@@ -112,10 +161,10 @@ public class GeneratorChunk : MonoBehaviour
                             triangles.Add(vertices.Count - 2);
                             triangles.Add(vertices.Count - 1);
 
-                            /*colors.Add(new Color(255, 0, 0, Light));
-                            colors.Add(new Color(255, 0, 0, Light));
-                            colors.Add(new Color(255, 0, 0, Light));
-                            colors.Add(new Color(255, 0, 0, Light));*/
+                            colors.Add(new Color(0, 0, 0, lightLevel));
+                            colors.Add(new Color(0, 0, 0, lightLevel));
+                            colors.Add(new Color(0, 0, 0, lightLevel));
+                            colors.Add(new Color(0, 0, 0, lightLevel));
                         }
 
                         //X-
@@ -139,6 +188,11 @@ public class GeneratorChunk : MonoBehaviour
                             triangles.Add(vertices.Count - 3);
                             triangles.Add(vertices.Count - 1);
                             triangles.Add(vertices.Count - 2);
+
+                            colors.Add(new Color(0, 0, 0, lightLevel));
+                            colors.Add(new Color(0, 0, 0, lightLevel));
+                            colors.Add(new Color(0, 0, 0, lightLevel));
+                            colors.Add(new Color(0, 0, 0, lightLevel));
                         }
 
                         //Y+
@@ -162,6 +216,11 @@ public class GeneratorChunk : MonoBehaviour
                             triangles.Add(vertices.Count - 3);
                             triangles.Add(vertices.Count - 2);
                             triangles.Add(vertices.Count - 1);
+
+                            colors.Add(new Color(0, 0, 0, lightLevel));
+                            colors.Add(new Color(0, 0, 0, lightLevel));
+                            colors.Add(new Color(0, 0, 0, lightLevel));
+                            colors.Add(new Color(0, 0, 0, lightLevel));
                         }
 
                         //Y-
@@ -185,6 +244,11 @@ public class GeneratorChunk : MonoBehaviour
                             triangles.Add(vertices.Count - 3);
                             triangles.Add(vertices.Count - 1);
                             triangles.Add(vertices.Count - 2);
+
+                            colors.Add(new Color(0, 0, 0, lightLevel));
+                            colors.Add(new Color(0, 0, 0, lightLevel));
+                            colors.Add(new Color(0, 0, 0, lightLevel));
+                            colors.Add(new Color(0, 0, 0, lightLevel));
                         }
 
                         //Z+
@@ -208,6 +272,11 @@ public class GeneratorChunk : MonoBehaviour
                             triangles.Add(vertices.Count - 3);
                             triangles.Add(vertices.Count - 2);
                             triangles.Add(vertices.Count - 1);
+
+                            colors.Add(new Color(0, 0, 0, lightLevel));
+                            colors.Add(new Color(0, 0, 0, lightLevel));
+                            colors.Add(new Color(0, 0, 0, lightLevel));
+                            colors.Add(new Color(0, 0, 0, lightLevel));
                         }
 
                         //Z-
@@ -231,6 +300,11 @@ public class GeneratorChunk : MonoBehaviour
                             triangles.Add(vertices.Count - 3);
                             triangles.Add(vertices.Count - 1);
                             triangles.Add(vertices.Count - 2);
+
+                            colors.Add(new Color(0, 0, 0, lightLevel));
+                            colors.Add(new Color(0, 0, 0, lightLevel));
+                            colors.Add(new Color(0, 0, 0, lightLevel));
+                            colors.Add(new Color(0, 0, 0, lightLevel));
                         }
                     }
                 }
@@ -239,20 +313,36 @@ public class GeneratorChunk : MonoBehaviour
 
         UnityMainThreadDispatcher.Instance().Enqueue(() =>
         {
-            name = $"Chunk [{cX},{cZ}]";
+            name = $"Chunk [{ChunkX},{ChunkZ}]";
 
             meshFilter.mesh.Clear();
 
             meshFilter.mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
 
             meshFilter.mesh.SetVertices(vertices);
-            meshFilter.mesh.SetUVs(0, uvs);
             meshFilter.mesh.SetTriangles(triangles, 0);
-            meshFilter.mesh.RecalculateNormals();
+            meshFilter.mesh.SetUVs(0, uvs);
+            meshFilter.mesh.SetColors(colors);
 
-            transform.position = new Vector3(cX * GeneratorCore.singleton.ChunkSizeXZ, 0, cZ * GeneratorCore.singleton.ChunkSizeXZ);
+            Task.Run(() =>
+            {
+                meshFilter.mesh.RecalculateNormals();
+                meshCollider.sharedMesh = meshFilter.mesh;
+            });
+
+            transform.position = new Vector3(ChunkX * GeneratorCore.singleton.ChunkSizeXZ, 0, ChunkZ * GeneratorCore.singleton.ChunkSizeXZ);
         });
     }
+
+    public bool CheckIfShadow(int x, int y, int z)
+	{
+        for(int i = y + 1; i < GeneratorCore.singleton.ChunkSizeY; i++)
+		{
+            if (Blocks[x, i, z] != BlockType.Air) return true;
+		}
+
+        return false;
+	}
 
     public bool CheckIfFaceVisible(BlockType currBlock, int x, int y, int z)
 	{
@@ -263,10 +353,10 @@ public class GeneratorChunk : MonoBehaviour
     }
 
     public Vector3 GetLocalChunksBlockCords(int x, int y, int z, int cX, int cZ)
-	{
+    {
         x = x - (cX * GeneratorCore.singleton.ChunkSizeXZ);
         z = z - (cZ * GeneratorCore.singleton.ChunkSizeXZ);
 
         return new Vector3(x, y, z);
-	}
+    }
 }

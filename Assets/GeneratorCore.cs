@@ -51,6 +51,10 @@ public class GeneratorCore : MonoBehaviour
 
 	private void Start()
 	{
+        Shader.SetGlobalFloat("minGlobalLightLevel", 0f);
+        Shader.SetGlobalFloat("maxGlobalLightLevel", 1f);
+        Shader.SetGlobalFloat("GlobalLightLevel", 1f);
+
         simplex = new Simplex();
         simplex.OctaveCount = 8;
         simplex.Seed = Seed;
@@ -58,10 +62,33 @@ public class GeneratorCore : MonoBehaviour
         StartCoroutine(GenerateWorld());
     }
 
-	IEnumerator GenerateWorld()
+	private void Update()
 	{
-        for(int x = -RenderDistance; x <= RenderDistance; x++)
+        Vector2Int v2int = new Vector2Int(Mathf.FloorToInt((player.position.x + 0.5f) / ChunkSizeXZ), Mathf.FloorToInt((player.position.z + 0.5f) / ChunkSizeXZ));
+
+        if (v2int != _offset)
+        {
+            _offset = v2int;
+
+            RegenrateChunks();
+        }
+    }
+
+    public static void SetBlock(int globalX, int globalY, int globalZ, BlockType block)
+	{
+        Vector2Int chunkCords = new Vector2Int(Mathf.FloorToInt((globalX + 0.5f) / singleton.ChunkSizeXZ), Mathf.FloorToInt((globalZ + 0.5f) / singleton.ChunkSizeXZ));
+
+        GeneratorChunk gc = singleton.generatorChunks.Find(x => x.ChunkX == chunkCords.x && x.ChunkZ == chunkCords.y);
+        if (gc != null)
 		{
+            gc.SetBlockGlobal(globalX, globalY, globalZ, block);
+		}
+    }
+
+    IEnumerator GenerateWorld()
+    {
+        for (int x = -RenderDistance; x <= RenderDistance; x++)
+        {
             for (int z = -RenderDistance; z <= RenderDistance; z++)
             {
                 GameObject chunkGb = new GameObject();
@@ -70,7 +97,7 @@ public class GeneratorCore : MonoBehaviour
                 MeshRenderer mr = chunkGb.AddComponent<MeshRenderer>();
 
                 mr.material = TextureMaterial;
-                chunkGb.AddComponent<MeshCollider>();
+                gc.meshCollider = chunkGb.AddComponent<MeshCollider>();
 
                 gc.Blocks = new BlockType[ChunkSizeXZ, ChunkSizeY, ChunkSizeXZ];
                 gc.meshFilter = chunkGb.AddComponent<MeshFilter>();
@@ -83,18 +110,6 @@ public class GeneratorCore : MonoBehaviour
                 });
                 yield return new WaitForSeconds(0.010f);
             }
-        }
-    }
-
-	private void Update()
-	{
-        Vector2Int v2int = new Vector2Int(Mathf.FloorToInt((player.position.x + 0.5f) / ChunkSizeXZ), Mathf.FloorToInt((player.position.z + 0.5f) / ChunkSizeXZ));
-
-        if (v2int != _offset)
-        {
-            _offset = v2int;
-
-            RegenrateChunks();
         }
     }
 

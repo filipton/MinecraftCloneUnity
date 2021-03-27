@@ -420,7 +420,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6462d688a216a8148aec3cd21c5003ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Seed: 0
+  Seed: -229840867
   GeneratorCurve:
     serializedVersion: 2
     m_Curve:
@@ -689,5 +689,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f5624dea1b1693c44a99385bccc4eb22, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  layerMask:
+    serializedVersion: 2
+    m_Bits: 55
   rotationspeed: 0.8
-  FlyingSpeed: 20
+  FlyingSpeed: 0.08
+  HandRange: 10
