@@ -343,7 +343,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 44fdce41359140f45a2fd69ba0f8548f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  noise: {fileID: 11400000, guid: 51417b0b3a084c74fb700c032866fbfb, type: 2}
   terrainElev:
     serializedVersion: 2
     m_Curve:
@@ -420,7 +419,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6462d688a216a8148aec3cd21c5003ef, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Seed: -229840867
+  Seed: 0
   GeneratorCurve:
     serializedVersion: 2
     m_Curve:
@@ -444,7 +443,7 @@ MonoBehaviour:
       outWeight: 0.9533011
     - serializedVersion: 3
       time: 0.29794106
-      value: 0.27670354
+      value: 0.40862948
       inSlope: 8.324043
       outSlope: 8.324043
       tangentMode: 0
@@ -453,7 +452,7 @@ MonoBehaviour:
       outWeight: 0.77514833
     - serializedVersion: 3
       time: 0.37587744
-      value: 0.67874175
+      value: 0.8106677
       inSlope: 1.8450654
       outSlope: 1.8450654
       tangentMode: 0
@@ -463,8 +462,8 @@ MonoBehaviour:
     - serializedVersion: 3
       time: 1.0000622
       value: 1.9998177
-      inSlope: 2.116482
-      outSlope: 2.116482
+      inSlope: 1.9051251
+      outSlope: 1.9051251
       tangentMode: 34
       weightedMode: 0
       inWeight: 0.33333334
@@ -475,9 +474,11 @@ MonoBehaviour:
   RenderDistance: 16
   ChunkSizeXZ: 16
   ChunkSizeY: 256
+  ChunkLoadingIntervalMs: 20
   NoiseScaleXZ: 0.15
   NoiseScaleY: 0.15
   TextureMaterial: {fileID: 2100000, guid: 5c816ae44b9ab864a9810e4fa6878b2a, type: 2}
+  WaterMaterial: {fileID: 2100000, guid: b433cdadb16d1de49a6835cfdbab8ab0, type: 2}
   atlasSize: 4
   generatorChunks: []
   player: {fileID: 1883350661}
@@ -691,7 +692,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   layerMask:
     serializedVersion: 2
-    m_Bits: 55
+    m_Bits: 2147483647
   rotationspeed: 0.8
   FlyingSpeed: 0.08
   HandRange: 10

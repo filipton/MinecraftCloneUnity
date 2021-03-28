@@ -117,6 +117,7 @@ public class GeneratorChunk : MonoBehaviour
 	{
         List<Vector3> vertices = new List<Vector3>();
         List<int> triangles = new List<int>();
+        List<int> Wtriangles = new List<int>();
         List<Vector2> uvs = new List<Vector2>();
         List<Color> colors = new List<Color>();
 
@@ -153,18 +154,31 @@ public class GeneratorChunk : MonoBehaviour
                             uvs.Add(new Vector2((atlasCoords.x + 1) * grid, (atlasCoords.y + 1) * grid));
                             uvs.Add(new Vector2((atlasCoords.x + 1) * grid, atlasCoords.y * grid));
 
-                            triangles.Add(vertices.Count - 4);
-                            triangles.Add(vertices.Count - 3);
-                            triangles.Add(vertices.Count - 1);
+                            if(currBlock == BlockType.Water)
+							{
+                                Wtriangles.Add(vertices.Count - 4);
+                                Wtriangles.Add(vertices.Count - 3);
+                                Wtriangles.Add(vertices.Count - 1);
 
-                            triangles.Add(vertices.Count - 3);
-                            triangles.Add(vertices.Count - 2);
-                            triangles.Add(vertices.Count - 1);
+                                Wtriangles.Add(vertices.Count - 3);
+                                Wtriangles.Add(vertices.Count - 2);
+                                Wtriangles.Add(vertices.Count - 1);
+                            }
+							else
+							{
+                                triangles.Add(vertices.Count - 4);
+                                triangles.Add(vertices.Count - 3);
+                                triangles.Add(vertices.Count - 1);
 
-                            colors.Add(new Color(0, 0, 0, lightLevel));
-                            colors.Add(new Color(0, 0, 0, lightLevel));
-                            colors.Add(new Color(0, 0, 0, lightLevel));
-                            colors.Add(new Color(0, 0, 0, lightLevel));
+                                triangles.Add(vertices.Count - 3);
+                                triangles.Add(vertices.Count - 2);
+                                triangles.Add(vertices.Count - 1);
+                            }
+
+                            colors.Add(new Color(0, 0, 0, 1));
+                            colors.Add(new Color(0, 0, 0, 1));
+                            colors.Add(new Color(0, 0, 0, 1));
+                            colors.Add(new Color(0, 0, 0, 1));
                         }
 
                         //X-
@@ -181,18 +195,31 @@ public class GeneratorChunk : MonoBehaviour
                             uvs.Add(new Vector2((atlasCoords.x + 1) * grid, (atlasCoords.y + 1) * grid));
                             uvs.Add(new Vector2((atlasCoords.x + 1) * grid, atlasCoords.y * grid));
 
-                            triangles.Add(vertices.Count - 4);
-                            triangles.Add(vertices.Count - 1);
-                            triangles.Add(vertices.Count - 3);
+                            if (currBlock == BlockType.Water)
+                            {
+                                Wtriangles.Add(vertices.Count - 4);
+                                Wtriangles.Add(vertices.Count - 1);
+                                Wtriangles.Add(vertices.Count - 3);
 
-                            triangles.Add(vertices.Count - 3);
-                            triangles.Add(vertices.Count - 1);
-                            triangles.Add(vertices.Count - 2);
+                                Wtriangles.Add(vertices.Count - 3);
+                                Wtriangles.Add(vertices.Count - 1);
+                                Wtriangles.Add(vertices.Count - 2);
+                            }
+                            else
+                            {
+                                triangles.Add(vertices.Count - 4);
+                                triangles.Add(vertices.Count - 1);
+                                triangles.Add(vertices.Count - 3);
 
-                            colors.Add(new Color(0, 0, 0, lightLevel));
-                            colors.Add(new Color(0, 0, 0, lightLevel));
-                            colors.Add(new Color(0, 0, 0, lightLevel));
-                            colors.Add(new Color(0, 0, 0, lightLevel));
+                                triangles.Add(vertices.Count - 3);
+                                triangles.Add(vertices.Count - 1);
+                                triangles.Add(vertices.Count - 2);
+                            }
+
+                            colors.Add(new Color(0, 0, 0, 1));
+                            colors.Add(new Color(0, 0, 0, 1));
+                            colors.Add(new Color(0, 0, 0, 1));
+                            colors.Add(new Color(0, 0, 0, 1));
                         }
 
                         //Y+
@@ -209,13 +236,26 @@ public class GeneratorChunk : MonoBehaviour
                             uvs.Add(new Vector2((atlasCoords.x + 1) * grid, (atlasCoords.y + 1) * grid));
                             uvs.Add(new Vector2((atlasCoords.x + 1) * grid, atlasCoords.y * grid));
 
-                            triangles.Add(vertices.Count - 4);
-                            triangles.Add(vertices.Count - 3);
-                            triangles.Add(vertices.Count - 1);
+                            if (currBlock == BlockType.Water)
+                            {
+                                Wtriangles.Add(vertices.Count - 4);
+                                Wtriangles.Add(vertices.Count - 3);
+                                Wtriangles.Add(vertices.Count - 1);
 
-                            triangles.Add(vertices.Count - 3);
-                            triangles.Add(vertices.Count - 2);
-                            triangles.Add(vertices.Count - 1);
+                                Wtriangles.Add(vertices.Count - 3);
+                                Wtriangles.Add(vertices.Count - 2);
+                                Wtriangles.Add(vertices.Count - 1);
+                            }
+                            else
+                            {
+                                triangles.Add(vertices.Count - 4);
+                                triangles.Add(vertices.Count - 3);
+                                triangles.Add(vertices.Count - 1);
+
+                                triangles.Add(vertices.Count - 3);
+                                triangles.Add(vertices.Count - 2);
+                                triangles.Add(vertices.Count - 1);
+                            }
 
                             colors.Add(new Color(0, 0, 0, lightLevel));
                             colors.Add(new Color(0, 0, 0, lightLevel));
@@ -237,18 +277,31 @@ public class GeneratorChunk : MonoBehaviour
                             uvs.Add(new Vector2((atlasCoords.x + 1) * grid, (atlasCoords.y + 1) * grid));
                             uvs.Add(new Vector2((atlasCoords.x + 1) * grid, atlasCoords.y * grid));
 
-                            triangles.Add(vertices.Count - 4);
-                            triangles.Add(vertices.Count - 1);
-                            triangles.Add(vertices.Count - 3);
+                            if (currBlock == BlockType.Water)
+                            {
+                                Wtriangles.Add(vertices.Count - 4);
+                                Wtriangles.Add(vertices.Count - 1);
+                                Wtriangles.Add(vertices.Count - 3);
 
-                            triangles.Add(vertices.Count - 3);
-                            triangles.Add(vertices.Count - 1);
-                            triangles.Add(vertices.Count - 2);
+                                Wtriangles.Add(vertices.Count - 3);
+                                Wtriangles.Add(vertices.Count - 1);
+                                Wtriangles.Add(vertices.Count - 2);
+                            }
+                            else
+                            {
+                                triangles.Add(vertices.Count - 4);
+                                triangles.Add(vertices.Count - 1);
+                                triangles.Add(vertices.Count - 3);
 
-                            colors.Add(new Color(0, 0, 0, lightLevel));
-                            colors.Add(new Color(0, 0, 0, lightLevel));
-                            colors.Add(new Color(0, 0, 0, lightLevel));
-                            colors.Add(new Color(0, 0, 0, lightLevel));
+                                triangles.Add(vertices.Count - 3);
+                                triangles.Add(vertices.Count - 1);
+                                triangles.Add(vertices.Count - 2);
+                            }
+
+                            colors.Add(new Color(0, 0, 0, 1));
+                            colors.Add(new Color(0, 0, 0, 1));
+                            colors.Add(new Color(0, 0, 0, 1));
+                            colors.Add(new Color(0, 0, 0, 1));
                         }
 
                         //Z+
@@ -265,18 +318,31 @@ public class GeneratorChunk : MonoBehaviour
                             uvs.Add(new Vector2((atlasCoords.x + 1) * grid, (atlasCoords.y + 1) * grid));
                             uvs.Add(new Vector2((atlasCoords.x + 1) * grid, atlasCoords.y * grid));
 
-                            triangles.Add(vertices.Count - 4);
-                            triangles.Add(vertices.Count - 3);
-                            triangles.Add(vertices.Count - 1);
+                            if (currBlock == BlockType.Water)
+                            {
+                                Wtriangles.Add(vertices.Count - 4);
+                                Wtriangles.Add(vertices.Count - 3);
+                                Wtriangles.Add(vertices.Count - 1);
 
-                            triangles.Add(vertices.Count - 3);
-                            triangles.Add(vertices.Count - 2);
-                            triangles.Add(vertices.Count - 1);
+                                Wtriangles.Add(vertices.Count - 3);
+                                Wtriangles.Add(vertices.Count - 2);
+                                Wtriangles.Add(vertices.Count - 1);
+                            }
+                            else
+                            {
+                                triangles.Add(vertices.Count - 4);
+                                triangles.Add(vertices.Count - 3);
+                                triangles.Add(vertices.Count - 1);
 
-                            colors.Add(new Color(0, 0, 0, lightLevel));
-                            colors.Add(new Color(0, 0, 0, lightLevel));
-                            colors.Add(new Color(0, 0, 0, lightLevel));
-                            colors.Add(new Color(0, 0, 0, lightLevel));
+                                triangles.Add(vertices.Count - 3);
+                                triangles.Add(vertices.Count - 2);
+                                triangles.Add(vertices.Count - 1);
+                            }
+
+                            colors.Add(new Color(0, 0, 0, 1));
+                            colors.Add(new Color(0, 0, 0, 1));
+                            colors.Add(new Color(0, 0, 0, 1));
+                            colors.Add(new Color(0, 0, 0, 1));
                         }
 
                         //Z-
@@ -293,18 +359,31 @@ public class GeneratorChunk : MonoBehaviour
                             uvs.Add(new Vector2((atlasCoords.x + 1) * grid, (atlasCoords.y + 1) * grid));
                             uvs.Add(new Vector2((atlasCoords.x + 1) * grid, atlasCoords.y * grid));
 
-                            triangles.Add(vertices.Count - 4);
-                            triangles.Add(vertices.Count - 1);
-                            triangles.Add(vertices.Count - 3);
+                            if (currBlock == BlockType.Water)
+                            {
+                                Wtriangles.Add(vertices.Count - 4);
+                                Wtriangles.Add(vertices.Count - 1);
+                                Wtriangles.Add(vertices.Count - 3);
 
-                            triangles.Add(vertices.Count - 3);
-                            triangles.Add(vertices.Count - 1);
-                            triangles.Add(vertices.Count - 2);
+                                Wtriangles.Add(vertices.Count - 3);
+                                Wtriangles.Add(vertices.Count - 1);
+                                Wtriangles.Add(vertices.Count - 2);
+                            }
+                            else
+                            {
+                                triangles.Add(vertices.Count - 4);
+                                triangles.Add(vertices.Count - 1);
+                                triangles.Add(vertices.Count - 3);
 
-                            colors.Add(new Color(0, 0, 0, lightLevel));
-                            colors.Add(new Color(0, 0, 0, lightLevel));
-                            colors.Add(new Color(0, 0, 0, lightLevel));
-                            colors.Add(new Color(0, 0, 0, lightLevel));
+                                triangles.Add(vertices.Count - 3);
+                                triangles.Add(vertices.Count - 1);
+                                triangles.Add(vertices.Count - 2);
+                            }
+
+                            colors.Add(new Color(0, 0, 0, 1));
+                            colors.Add(new Color(0, 0, 0, 1));
+                            colors.Add(new Color(0, 0, 0, 1));
+                            colors.Add(new Color(0, 0, 0, 1));
                         }
                     }
                 }
@@ -319,16 +398,16 @@ public class GeneratorChunk : MonoBehaviour
 
             meshFilter.mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
 
+            meshFilter.mesh.subMeshCount = 2;
+
             meshFilter.mesh.SetVertices(vertices);
             meshFilter.mesh.SetTriangles(triangles, 0);
+            meshFilter.mesh.SetTriangles(Wtriangles, 1);
             meshFilter.mesh.SetUVs(0, uvs);
             meshFilter.mesh.SetColors(colors);
 
-            Task.Run(() =>
-            {
-                meshFilter.mesh.RecalculateNormals();
-                meshCollider.sharedMesh = meshFilter.mesh;
-            });
+            meshFilter.mesh.RecalculateNormals();
+            meshCollider.sharedMesh = meshFilter.mesh;
 
             transform.position = new Vector3(ChunkX * GeneratorCore.singleton.ChunkSizeXZ, 0, ChunkZ * GeneratorCore.singleton.ChunkSizeXZ);
         });

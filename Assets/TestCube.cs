@@ -10,7 +10,7 @@ public class TestCube : MonoBehaviour
 
     MeshFilter mf;
 
-    public FastNoiseExtension noise;
+   // public FastNoiseExtension noise;
     public Simplex simplex;
 
     public AnimationCurve terrainElev;
@@ -75,7 +75,7 @@ public class TestCube : MonoBehaviour
 
         //DeleteChunks();
 
-        FastNoiseLite fn = noise.GetLibInstance(3245654);
+        //FastNoiseLite fn = noise.GetLibInstance(3245654);
         simplex = new Simplex();
 
          //= new MeshFilter();
