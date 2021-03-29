@@ -156,13 +156,7 @@ public class GeneratorChunk : MonoBehaviour
 
                             if(currBlock == BlockType.Water)
 							{
-                                Wtriangles.Add(vertices.Count - 4);
-                                Wtriangles.Add(vertices.Count - 3);
-                                Wtriangles.Add(vertices.Count - 1);
-
-                                Wtriangles.Add(vertices.Count - 3);
-                                Wtriangles.Add(vertices.Count - 2);
-                                Wtriangles.Add(vertices.Count - 1);
+                                
                             }
 							else
 							{
@@ -197,13 +191,7 @@ public class GeneratorChunk : MonoBehaviour
 
                             if (currBlock == BlockType.Water)
                             {
-                                Wtriangles.Add(vertices.Count - 4);
-                                Wtriangles.Add(vertices.Count - 1);
-                                Wtriangles.Add(vertices.Count - 3);
-
-                                Wtriangles.Add(vertices.Count - 3);
-                                Wtriangles.Add(vertices.Count - 1);
-                                Wtriangles.Add(vertices.Count - 2);
+                                
                             }
                             else
                             {
@@ -279,13 +267,7 @@ public class GeneratorChunk : MonoBehaviour
 
                             if (currBlock == BlockType.Water)
                             {
-                                Wtriangles.Add(vertices.Count - 4);
-                                Wtriangles.Add(vertices.Count - 1);
-                                Wtriangles.Add(vertices.Count - 3);
-
-                                Wtriangles.Add(vertices.Count - 3);
-                                Wtriangles.Add(vertices.Count - 1);
-                                Wtriangles.Add(vertices.Count - 2);
+                                
                             }
                             else
                             {
@@ -320,13 +302,7 @@ public class GeneratorChunk : MonoBehaviour
 
                             if (currBlock == BlockType.Water)
                             {
-                                Wtriangles.Add(vertices.Count - 4);
-                                Wtriangles.Add(vertices.Count - 3);
-                                Wtriangles.Add(vertices.Count - 1);
-
-                                Wtriangles.Add(vertices.Count - 3);
-                                Wtriangles.Add(vertices.Count - 2);
-                                Wtriangles.Add(vertices.Count - 1);
+                                
                             }
                             else
                             {
@@ -361,13 +337,7 @@ public class GeneratorChunk : MonoBehaviour
 
                             if (currBlock == BlockType.Water)
                             {
-                                Wtriangles.Add(vertices.Count - 4);
-                                Wtriangles.Add(vertices.Count - 1);
-                                Wtriangles.Add(vertices.Count - 3);
-
-                                Wtriangles.Add(vertices.Count - 3);
-                                Wtriangles.Add(vertices.Count - 1);
-                                Wtriangles.Add(vertices.Count - 2);
+                                
                             }
                             else
                             {
