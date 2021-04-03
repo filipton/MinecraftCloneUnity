@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -11,8 +13,8 @@ public class GeneratorChunk : MonoBehaviour
     public MeshRenderer meshRenderer;
     public MeshCollider meshCollider;
 
-    public int ChunkX;
-    public int ChunkZ;
+    public int ChunkX = 0;
+    public int ChunkZ = 0;
 
     public BlockType[,,] Blocks = new BlockType[0, 0, 0];
 
@@ -52,6 +54,15 @@ public class GeneratorChunk : MonoBehaviour
                         else
                         {
                             Blocks[lx, ly, lz] = BlockType.Stone;
+
+                            foreach (AdvBlocksGenObj BlockGen in GeneratorCore.singleton.AdvancedBlocksGeneration)
+							{
+                                float PerlinValue = Perlin.Noise(x * BlockGen.NoiseScale, y * BlockGen.NoiseScale, z * BlockGen.NoiseScale);
+                                if (ly <= BlockGen.MaxY && ly >= BlockGen.MinY && PerlinValue > BlockGen.Threshold)
+                                {
+                                    Blocks[lx, ly, lz] = BlockGen.blockType;
+                                }
+                            }
                         }
 
                         depthY++;
@@ -86,15 +97,18 @@ public class GeneratorChunk : MonoBehaviour
             RegenerateChunk();
         });
 	}
-    public void SetBlockGlobal(int gloablX, int gloablY, int gloablZ, BlockType blockToSet)
+    public void SetBlockGlobal(int gloablX, int gloablY, int gloablZ, BlockType blockToSet, bool Regen = true)
     {
         Vector3 local = GetLocalChunksBlockCords(gloablX, gloablY, gloablZ, ChunkX, ChunkZ);
         Blocks[(int)local.x, (int)local.y, (int)local.z] = blockToSet;
 
-        Task.Run(() =>
-        {
-            RegenerateChunk();
-        });
+        if (Regen)
+		{
+            Task.Run(() =>
+            {
+                RegenerateChunk();
+            });
+        }
     }
 
     public void GenerateChunkFromBlocks(int cX, int cZ, BlockType[,,] blocks)
@@ -395,10 +409,45 @@ public class GeneratorChunk : MonoBehaviour
 
     public bool CheckIfFaceVisible(BlockType currBlock, int x, int y, int z)
 	{
+        //FUCK THIS SHIT IM OUT
+        /*try
+        {
+            if (x >= GeneratorCore.singleton.ChunkSizeXZ) return CheckIfRenderBlockInChunk(currBlock, ChunkX + 1, ChunkZ, 0, y, z);
+            else if (x < 0) return CheckIfRenderBlockInChunk(currBlock, ChunkX - 1, ChunkZ, GeneratorCore.singleton.ChunkSizeXZ - 1, y, z);
+            if (z >= GeneratorCore.singleton.ChunkSizeXZ) return CheckIfRenderBlockInChunk(currBlock, ChunkX, ChunkZ + 1, x, y, 0);
+            else if (z < 0) return CheckIfRenderBlockInChunk(currBlock, ChunkX, ChunkZ - 1, x, y, GeneratorCore.singleton.ChunkSizeXZ - 1);
+            else if (y >= GeneratorCore.singleton.ChunkSizeY || y < 0) return true;
+        }
+        catch (Exception e)
+        {
+			UnityEngine.Debug.LogError(e);
+        }*/
+
+        //if(currBlock == BlockType.IronOre || currBlock == BlockType.DiamondOre || currBlock == BlockType.GoldOre || currBlock == BlockType.CoalOre)
+		//{
+        //    return true;
+		//}
+
         if (x >= GeneratorCore.singleton.ChunkSizeXZ || y >= GeneratorCore.singleton.ChunkSizeY || z >= GeneratorCore.singleton.ChunkSizeXZ) return true;
         if (x < 0 || y < 0 || z < 0) return true;
 
         return Blocks[x, y, z] == BlockType.Air || (currBlock != BlockType.Water && Blocks[x, y, z] == BlockType.Water);
+    }
+
+    public bool CheckIfRenderBlockInChunk(BlockType currBlock, int cX, int cZ, int x, int y, int z)
+	{
+        //WHY THE FUCK THIS ISNT WORKING?!
+
+        int index = GeneratorCore.singleton.generatorChunks.FindIndex(x => x.ChunkX == cX && x.ChunkZ == cZ);
+
+        if (index > -1)
+		{
+            GeneratorChunk gc = GeneratorCore.singleton.generatorChunks[index];
+
+            return gc.Blocks[x, y, z] == BlockType.Air || (currBlock != BlockType.Water && gc.Blocks[x, y, z] == BlockType.Water);
+        }
+
+        return true;
     }
 
     public Vector3 GetLocalChunksBlockCords(int x, int y, int z, int cX, int cZ)
@@ -408,4 +457,20 @@ public class GeneratorChunk : MonoBehaviour
 
         return new Vector3(x, y, z);
     }
+}
+
+public class Atlas
+{
+    public static Vector2[,] Cords = new Vector2[,] {
+        { new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, 0), new Vector2(0, 0) },
+        { new Vector2(1, 0), new Vector2(1, 0), new Vector2(1, 0), new Vector2(1, 0), new Vector2(1, 0), new Vector2(1, 0) },
+        { new Vector2(2, 0), new Vector2(2, 0), new Vector2(3, 0), new Vector2(1, 0), new Vector2(2, 0), new Vector2(2, 0) },
+        { new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 1), new Vector2(0, 1) },
+        { new Vector2(1, 1), new Vector2(1, 1), new Vector2(1, 1), new Vector2(1, 1), new Vector2(1, 1), new Vector2(1, 1) },
+        { new Vector2(2, 1), new Vector2(2, 1), new Vector2(2, 1), new Vector2(2, 1), new Vector2(2, 1), new Vector2(2, 1) },
+        { new Vector2(3, 1), new Vector2(3, 1), new Vector2(3, 1), new Vector2(3, 1), new Vector2(3, 1), new Vector2(3, 1) },
+        { new Vector2(0, 2), new Vector2(0, 2), new Vector2(0, 2), new Vector2(0, 2), new Vector2(0, 2), new Vector2(0, 2) },
+        { new Vector2(1, 2), new Vector2(1, 2), new Vector2(1, 2), new Vector2(1, 2), new Vector2(1, 2), new Vector2(1, 2) },
+        { new Vector2(2, 2), new Vector2(2, 2), new Vector2(2, 2), new Vector2(2, 2), new Vector2(2, 2), new Vector2(2, 2) }
+    };
 }

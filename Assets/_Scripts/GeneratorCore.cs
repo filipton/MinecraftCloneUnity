@@ -36,6 +36,9 @@ public class GeneratorCore : MonoBehaviour
 
     [Header("Generator Fields")]
     public List<GeneratorChunk> generatorChunks = new List<GeneratorChunk>();
+    public List<AdvBlocksGenObj> AdvancedBlocksGeneration = new List<AdvBlocksGenObj>();
+
+    public Dictionary<KeyValuePair<int, int>, GeneratorChunk> genChunks = new Dictionary<KeyValuePair<int, int>, GeneratorChunk>();
     public Transform player;
     public Vector2Int _offset = new Vector2Int();
 
@@ -50,6 +53,7 @@ public class GeneratorCore : MonoBehaviour
 		{
             Seed = UnityEngine.Random.Range(-320000000, 320000000);
 		}
+        //genChunks.RenameKey(new KeyValuePair<int, int>(1, 1), new KeyValuePair<int, int>(0, 0));
 	}
 
 	private void Start()
@@ -77,15 +81,60 @@ public class GeneratorCore : MonoBehaviour
         }
     }
 
-    public static void SetBlock(int globalX, int globalY, int globalZ, BlockType block)
+    public static void SetBlock(int globalX, int globalY, int globalZ, BlockType block, bool Regen = true)
 	{
         Vector2Int chunkCords = new Vector2Int(Mathf.FloorToInt((globalX + 0.5f) / singleton.ChunkSizeXZ), Mathf.FloorToInt((globalZ + 0.5f) / singleton.ChunkSizeXZ));
 
         GeneratorChunk gc = singleton.generatorChunks.Find(x => x.ChunkX == chunkCords.x && x.ChunkZ == chunkCords.y);
         if (gc != null)
 		{
-            gc.SetBlockGlobal(globalX, globalY, globalZ, block);
+            gc.SetBlockGlobal(globalX, globalY, globalZ, block, Regen);
 		}
+    }
+
+    public static void RegenChunk(int cX, int cZ)
+    {
+        GeneratorChunk gc = singleton.generatorChunks.Find(x => x.ChunkX == cX && x.ChunkZ == cZ);
+        if (gc != null)
+        {
+            Task.Run(() =>
+            {
+                gc.RegenerateChunk();
+            });
+        }
+    }
+
+    public static void SetTree(int x, int y, int z)
+	{
+        List<Vector2Int> ChunksToRegen = new List<Vector2Int>();
+
+        for(int lx = -2; lx <= 2; lx++)
+		{
+            for (int ly = 3; ly <= 5; ly++)
+            {
+                for (int lz = -2; lz <= 2; lz++)
+                {
+                    SetBlock(x + lx, y + ly, z + lz, BlockType.Leaves, false);
+                    Vector2Int chunkCords = new Vector2Int(Mathf.FloorToInt((x + lx + 0.5f) / singleton.ChunkSizeXZ), Mathf.FloorToInt((z + lz + 0.5f) / singleton.ChunkSizeXZ));
+
+					if (!ChunksToRegen.Contains(chunkCords))
+					{
+                        ChunksToRegen.Add(chunkCords);
+					}
+                }
+            }
+        }
+
+        SetBlock(x, y, z, BlockType.Wood, false);
+        SetBlock(x, y + 1, z, BlockType.Wood, false);
+        SetBlock(x, y + 2, z, BlockType.Wood, false);
+        SetBlock(x, y + 3, z, BlockType.Wood, false);
+        SetBlock(x, y + 4, z, BlockType.Wood, false);
+
+        foreach(Vector2Int v in ChunksToRegen)
+		{
+            RegenChunk(v.x, v.y);
+        }
     }
 
     IEnumerator GenerateWorld()
@@ -195,6 +244,34 @@ public class GeneratorCore : MonoBehaviour
     }
 }
 
+[System.Serializable]
+public struct AdvBlocksGenObj
+{
+    public BlockType blockType;
+
+    [Range(0, 255)]
+    public int MinY;
+
+    [Range(0, 255)]
+    public int MaxY;
+
+    public float NoiseScale;
+
+    [Range(-1, 1)]
+    public float Threshold;
+}
+
+public static class Extensions
+{
+    public static void RenameKey<TKey, TValue>(this IDictionary<TKey, TValue> dic,
+                                      TKey fromKey, TKey toKey)
+    {
+        TValue value = dic[fromKey];
+        dic.Remove(fromKey);
+        dic[toKey] = value;
+    }
+}
+
 public enum BlockType
 {
     Air,
@@ -202,5 +279,10 @@ public enum BlockType
     Dirt,
     Grass,
     Water,
-    Leaves
+    Wood,
+    Leaves,
+    IronOre,
+    DiamondOre,
+    GoldOre,
+    CoalOre
 }

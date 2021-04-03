@@ -18,7 +18,7 @@ public class PlayerController : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
         if (Input.GetKey(KeyCode.W))
         {
@@ -36,19 +36,20 @@ public class PlayerController : MonoBehaviour
         {
             transform.position += transform.right * FlyingSpeed;
         }
+    }
 
-        //Pitch rotates the camera around its local Right axis
+	private void Update()
+	{
         transform.Rotate(Vector3.left * Input.GetAxis("Mouse Y") * rotationspeed);
 
-        //Yaw rotates the camera around its local Up axis
         transform.Rotate(Vector3.up * Input.GetAxis("Mouse X") * rotationspeed);
 
         RaycastHit Hit;
         Ray dir = new Ray(transform.position, transform.forward);
         if (Physics.Raycast(dir, out Hit, HandRange, layerMask))
         {
-			if (Input.GetKeyDown(KeyCode.Mouse0))
-			{
+            if (Input.GetKeyDown(KeyCode.Mouse0))
+            {
                 Vector3 hitCoord = new Vector3(Hit.point.x, Hit.point.y, Hit.point.z);
                 hitCoord += (new Vector3(Hit.normal.x, Hit.normal.y, Hit.normal.z)) * -0.5f;
 
@@ -59,7 +60,7 @@ public class PlayerController : MonoBehaviour
                 GeneratorCore.SetBlock(x, y, z, BlockType.Air);
             }
             else if (Input.GetKeyDown(KeyCode.Mouse1))
-			{
+            {
                 Vector3 placeCoord = new Vector3(Hit.point.x, Hit.point.y, Hit.point.z);
                 placeCoord += (new Vector3(Hit.normal.x, Hit.normal.y, Hit.normal.z)) * 0.5f;
 
@@ -67,7 +68,8 @@ public class PlayerController : MonoBehaviour
                 int py = Mathf.RoundToInt(placeCoord.y);
                 int pz = Mathf.RoundToInt(placeCoord.z);
 
-                GeneratorCore.SetBlock(px, py, pz, BlockType.Stone);
+                //GeneratorCore.SetBlock(px, py, pz, BlockType.IronOre);
+                GeneratorCore.SetTree(px, py, pz);
             }
         }
     }
