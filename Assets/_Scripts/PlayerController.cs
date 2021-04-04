@@ -10,14 +10,12 @@ public class PlayerController : MonoBehaviour
     public float FlyingSpeed = 20;
     public float HandRange = 5;
 
-    // Start is called before the first frame update
     void Start()
     {
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
     }
 
-    // Update is called once per frame
     void FixedUpdate()
     {
         if (Input.GetKey(KeyCode.W))
@@ -57,7 +55,7 @@ public class PlayerController : MonoBehaviour
                 int y = Mathf.RoundToInt(hitCoord.y);
                 int z = Mathf.RoundToInt(hitCoord.z);
 
-                GeneratorCore.SetBlock(x, y, z, BlockType.Air);
+                GeneratorCore.SetBlock(x, y, z, BlockType.Air, true, true);
             }
             else if (Input.GetKeyDown(KeyCode.Mouse1))
             {

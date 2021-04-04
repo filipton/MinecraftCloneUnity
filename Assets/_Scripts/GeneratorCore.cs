@@ -17,6 +17,7 @@ public class GeneratorCore : MonoBehaviour
     [Header("Generator Settings")]
     public Simplex simplex;
     public AnimationCurve GeneratorCurve;
+    [HideInInspector] public float[] GenCurve;
 
     public int RenderDistance = 8;
 
@@ -38,7 +39,7 @@ public class GeneratorCore : MonoBehaviour
     public List<GeneratorChunk> generatorChunks = new List<GeneratorChunk>();
     public List<AdvBlocksGenObj> AdvancedBlocksGeneration = new List<AdvBlocksGenObj>();
 
-    public Dictionary<KeyValuePair<int, int>, GeneratorChunk> genChunks = new Dictionary<KeyValuePair<int, int>, GeneratorChunk>();
+    //public Dictionary<KeyValuePair<int, int>, GeneratorChunk> genChunks = new Dictionary<KeyValuePair<int, int>, GeneratorChunk>();
     public Transform player;
     public Vector2Int _offset = new Vector2Int();
 
@@ -48,6 +49,8 @@ public class GeneratorCore : MonoBehaviour
 
     private void Awake()
 	{
+        GenCurve = GeneratorCurve.GenerateCurveArray(ChunkSizeY);
+
         singleton = this;
         if(Seed == 0)
 		{
@@ -71,7 +74,7 @@ public class GeneratorCore : MonoBehaviour
 
 	private void Update()
 	{
-        Vector2Int v2int = new Vector2Int(Mathf.FloorToInt((player.position.x + 0.5f) / ChunkSizeXZ), Mathf.FloorToInt((player.position.z + 0.5f) / ChunkSizeXZ));
+        Vector2Int v2int = GetChunkCords(player.transform.position.x, player.transform.position.z);
 
         if (v2int != _offset)
         {
@@ -81,14 +84,28 @@ public class GeneratorCore : MonoBehaviour
         }
     }
 
-    public static void SetBlock(int globalX, int globalY, int globalZ, BlockType block, bool Regen = true)
+    public static Vector2Int GetChunkCords(float x, float z)
+	{
+        return new Vector2Int(Mathf.FloorToInt((x + 0.5f) / singleton.ChunkSizeXZ), Mathf.FloorToInt((z + 0.5f) / singleton.ChunkSizeXZ));
+    }
+
+    public static void SetBlock(int globalX, int globalY, int globalZ, BlockType block, bool Regen = true, bool RegenOtherChunks = false)
 	{
         Vector2Int chunkCords = new Vector2Int(Mathf.FloorToInt((globalX + 0.5f) / singleton.ChunkSizeXZ), Mathf.FloorToInt((globalZ + 0.5f) / singleton.ChunkSizeXZ));
+        SaveManager.singleton.SaveBlock(globalX, globalY, globalZ, block);
 
         GeneratorChunk gc = singleton.generatorChunks.Find(x => x.ChunkX == chunkCords.x && x.ChunkZ == chunkCords.y);
         if (gc != null)
 		{
             gc.SetBlockGlobal(globalX, globalY, globalZ, block, Regen);
+
+			if (RegenOtherChunks)
+			{
+                RegenChunk(chunkCords.x + 1, chunkCords.y);
+                RegenChunk(chunkCords.x - 1, chunkCords.y);
+                RegenChunk(chunkCords.x, chunkCords.y + 1);
+                RegenChunk(chunkCords.x, chunkCords.y - 1);
+            }
 		}
     }
 
@@ -167,6 +184,8 @@ public class GeneratorCore : MonoBehaviour
                 gc.meshRenderer = mr;
 
                 generatorChunks.Add(gc);
+                //genChunks[new KeyValuePair<int, int>(x + _offset.x, z + _offset.y)] = gc;
+
                 Task.Run(() =>
                 {
                     gc.GenerateChunk(x + _offset.x, z + _offset.y);
@@ -223,7 +242,10 @@ public class GeneratorCore : MonoBehaviour
                     {
                         Task.Run(() =>
                         {
-                            ChunksToRegenerate.Dequeue().GenerateChunk(x, z);
+                            GeneratorChunk gc = ChunksToRegenerate.Dequeue();
+                            //genChunks.RenameKey(new KeyValuePair<int, int>(gc.ChunkX, gc.ChunkZ), new KeyValuePair<int, int>(x, z));
+
+                            gc.GenerateChunk(x, z);
                         });
 
                         Thread.Sleep(ChunkLoadingIntervalMs);
@@ -244,7 +266,7 @@ public class GeneratorCore : MonoBehaviour
     }
 }
 
-[System.Serializable]
+[Serializable]
 public struct AdvBlocksGenObj
 {
     public BlockType blockType;
@@ -266,9 +288,22 @@ public static class Extensions
     public static void RenameKey<TKey, TValue>(this IDictionary<TKey, TValue> dic,
                                       TKey fromKey, TKey toKey)
     {
-        TValue value = dic[fromKey];
-        dic.Remove(fromKey);
-        dic[toKey] = value;
+		if (dic.ContainsKey(fromKey))
+		{
+            TValue value = dic[fromKey];
+            dic.Remove(fromKey);
+            dic[toKey] = value;
+        }
+    }
+
+    public static float[] GenerateCurveArray(this AnimationCurve self, int size)
+    {
+        float[] returnArray = new float[size];
+        for (int j = 0; j <= size-1; j++)
+        {
+            returnArray[j] = self.Evaluate(j / (float)size);
+        }
+        return returnArray;
     }
 }
 

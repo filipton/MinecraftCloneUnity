@@ -20,9 +20,6 @@ public class GeneratorChunk : MonoBehaviour
 
     public void GenerateChunk(int cX, int cZ)
 	{
-        AnimationCurve genCurve = new AnimationCurve();
-        genCurve.keys = GeneratorCore.singleton.GeneratorCurve.keys;
-
         ChunkX = cX;
         ChunkZ = cZ;
 
@@ -41,7 +38,7 @@ public class GeneratorChunk : MonoBehaviour
                     int ly = (int)local.y;
                     int lz = (int)local.z;
 
-                    if (noiseValue >= genCurve.Evaluate(y / ((float)GeneratorCore.singleton.ChunkSizeY)))
+                    if (noiseValue >= GeneratorCore.singleton.GenCurve[y])
                     {
                         if (depthY == 0)
                         {
@@ -84,6 +81,14 @@ public class GeneratorChunk : MonoBehaviour
                 depthY = 0;
             }
         }
+
+        if(SaveManager.singleton.TryGetEditedChunk(cX, cZ, out EditedChunk ec))
+		{
+            foreach(EditedBlock edb in ec.editedBlocks)
+			{
+                SetBlockGlobal(edb.x, edb.y, edb.z, edb.blockType, false);
+			}
+		}
 
         GenerateChunkMesh();
     }
@@ -170,7 +175,13 @@ public class GeneratorChunk : MonoBehaviour
 
                             if(currBlock == BlockType.Water)
 							{
+                                Wtriangles.Add(vertices.Count - 4);
+                                Wtriangles.Add(vertices.Count - 3);
+                                Wtriangles.Add(vertices.Count - 1);
                                 
+                                Wtriangles.Add(vertices.Count - 3);
+                                Wtriangles.Add(vertices.Count - 2);
+                                Wtriangles.Add(vertices.Count - 1);
                             }
 							else
 							{
@@ -205,7 +216,13 @@ public class GeneratorChunk : MonoBehaviour
 
                             if (currBlock == BlockType.Water)
                             {
+                                Wtriangles.Add(vertices.Count - 4);
+                                Wtriangles.Add(vertices.Count - 1);
+                                Wtriangles.Add(vertices.Count - 3);
                                 
+                                Wtriangles.Add(vertices.Count - 3);
+                                Wtriangles.Add(vertices.Count - 1);
+                                Wtriangles.Add(vertices.Count - 2);
                             }
                             else
                             {
@@ -281,7 +298,13 @@ public class GeneratorChunk : MonoBehaviour
 
                             if (currBlock == BlockType.Water)
                             {
-                                
+                                Wtriangles.Add(vertices.Count - 4);
+                                Wtriangles.Add(vertices.Count - 1);
+                                Wtriangles.Add(vertices.Count - 3);
+
+                                Wtriangles.Add(vertices.Count - 3);
+                                Wtriangles.Add(vertices.Count - 1);
+                                Wtriangles.Add(vertices.Count - 2);
                             }
                             else
                             {
@@ -316,7 +339,13 @@ public class GeneratorChunk : MonoBehaviour
 
                             if (currBlock == BlockType.Water)
                             {
-                                
+                                Wtriangles.Add(vertices.Count - 4);
+                                Wtriangles.Add(vertices.Count - 3);
+                                Wtriangles.Add(vertices.Count - 1);
+
+                                Wtriangles.Add(vertices.Count - 3);
+                                Wtriangles.Add(vertices.Count - 2);
+                                Wtriangles.Add(vertices.Count - 1);
                             }
                             else
                             {
@@ -351,7 +380,13 @@ public class GeneratorChunk : MonoBehaviour
 
                             if (currBlock == BlockType.Water)
                             {
-                                
+                                Wtriangles.Add(vertices.Count - 4);
+                                Wtriangles.Add(vertices.Count - 1);
+                                Wtriangles.Add(vertices.Count - 3);
+
+                                Wtriangles.Add(vertices.Count - 3);
+                                Wtriangles.Add(vertices.Count - 1);
+                                Wtriangles.Add(vertices.Count - 2);
                             }
                             else
                             {
@@ -410,7 +445,7 @@ public class GeneratorChunk : MonoBehaviour
     public bool CheckIfFaceVisible(BlockType currBlock, int x, int y, int z)
 	{
         //FUCK THIS SHIT IM OUT
-        /*try
+        try
         {
             if (x >= GeneratorCore.singleton.ChunkSizeXZ) return CheckIfRenderBlockInChunk(currBlock, ChunkX + 1, ChunkZ, 0, y, z);
             else if (x < 0) return CheckIfRenderBlockInChunk(currBlock, ChunkX - 1, ChunkZ, GeneratorCore.singleton.ChunkSizeXZ - 1, y, z);
@@ -421,15 +456,15 @@ public class GeneratorChunk : MonoBehaviour
         catch (Exception e)
         {
 			UnityEngine.Debug.LogError(e);
-        }*/
+        }
 
         //if(currBlock == BlockType.IronOre || currBlock == BlockType.DiamondOre || currBlock == BlockType.GoldOre || currBlock == BlockType.CoalOre)
 		//{
         //    return true;
 		//}
 
-        if (x >= GeneratorCore.singleton.ChunkSizeXZ || y >= GeneratorCore.singleton.ChunkSizeY || z >= GeneratorCore.singleton.ChunkSizeXZ) return true;
-        if (x < 0 || y < 0 || z < 0) return true;
+        //if (x >= GeneratorCore.singleton.ChunkSizeXZ || y >= GeneratorCore.singleton.ChunkSizeY || z >= GeneratorCore.singleton.ChunkSizeXZ) return true;
+        //if (x < 0 || y < 0 || z < 0) return true;
 
         return Blocks[x, y, z] == BlockType.Air || (currBlock != BlockType.Water && Blocks[x, y, z] == BlockType.Water);
     }
@@ -438,16 +473,52 @@ public class GeneratorChunk : MonoBehaviour
 	{
         //WHY THE FUCK THIS ISNT WORKING?!
 
-        int index = GeneratorCore.singleton.generatorChunks.FindIndex(x => x.ChunkX == cX && x.ChunkZ == cZ);
+        try
+        {
+            x += cX * GeneratorCore.singleton.ChunkSizeXZ;
+            z += cZ * GeneratorCore.singleton.ChunkSizeXZ;
 
-        if (index > -1)
-		{
-            GeneratorChunk gc = GeneratorCore.singleton.generatorChunks[index];
+            if(SaveManager.singleton.GetBlock(x, y, z, out BlockType blockType))
+			{
+                return blockType == BlockType.Air || (currBlock != BlockType.Water && blockType == BlockType.Water);
+            }
+			else
+			{
+                float noiseValue = (float)GeneratorCore.singleton.simplex.GetValue(x * GeneratorCore.singleton.NoiseScaleXZ, y * GeneratorCore.singleton.NoiseScaleY, z * GeneratorCore.singleton.NoiseScaleXZ);
 
-            return gc.Blocks[x, y, z] == BlockType.Air || (currBlock != BlockType.Water && gc.Blocks[x, y, z] == BlockType.Water);
+                if (!(noiseValue >= GeneratorCore.singleton.GenCurve[y]))
+                {
+                    if (y > 63)
+                    {
+                        return true;
+                    }
+                    else
+                    {
+                        if (currBlock != BlockType.Water)
+                        {
+                            return true;
+                        }
+                    }
+                }
+            }
+
+            /*if (GeneratorCore.singleton.genChunks.ContainsKey(new KeyValuePair<int, int>(cX, cZ)))
+            {
+                GeneratorChunk gc = GeneratorCore.singleton.genChunks[new KeyValuePair<int, int>(cX, cZ)];
+
+                if(gc.Blocks.Length > 0)
+				{
+                    return gc.Blocks[x, y, z] == BlockType.Air || (currBlock != BlockType.Water && gc.Blocks[x, y, z] == BlockType.Water);
+                }
+				else
+				{
+                    return true;
+				}
+            }*/
         }
+        catch { UnityEngine.Debug.LogWarning("Chunk was moved while Accessing it!"); }
 
-        return true;
+        return false;
     }
 
     public Vector3 GetLocalChunksBlockCords(int x, int y, int z, int cX, int cZ)

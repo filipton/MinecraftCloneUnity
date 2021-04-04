@@ -475,6 +475,7 @@ GameObject:
   m_Component:
   - component: {fileID: 734620686}
   - component: {fileID: 734620685}
+  - component: {fileID: 734620684}
   m_Layer: 0
   m_Name: Generator
   m_TagString: Untagged
@@ -482,6 +483,20 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
+--- !u!114 &734620684
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 734620683}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ee107ad7cb4cc4546b442da96a2a5843, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  RegionSizeInChunks: 32
+  editedChunks: []
 --- !u!114 &734620685
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -546,10 +561,11 @@ MonoBehaviour:
     m_PreInfinity: 2
     m_PostInfinity: 2
     m_RotationOrder: 4
+  GenCurve: []
   RenderDistance: 8
   ChunkSizeXZ: 16
   ChunkSizeY: 256
-  ChunkLoadingIntervalMs: 20
+  ChunkLoadingIntervalMs: 10
   NoiseScaleXZ: 0.15
   NoiseScaleY: 0.15
   TextureMaterial: {fileID: 2100000, guid: 5c816ae44b9ab864a9810e4fa6878b2a, type: 2}
