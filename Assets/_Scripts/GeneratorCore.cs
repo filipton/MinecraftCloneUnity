@@ -92,7 +92,7 @@ public class GeneratorCore : MonoBehaviour
     public static void SetBlock(int globalX, int globalY, int globalZ, BlockType block, bool Regen = true, bool RegenOtherChunks = false)
 	{
         Vector2Int chunkCords = new Vector2Int(Mathf.FloorToInt((globalX + 0.5f) / singleton.ChunkSizeXZ), Mathf.FloorToInt((globalZ + 0.5f) / singleton.ChunkSizeXZ));
-        SaveManager.singleton.SaveBlock(globalX, globalY, globalZ, block);
+        SaveManager.singleton.EditBlock(globalX, globalY, globalZ, block);
 
         GeneratorChunk gc = singleton.generatorChunks.Find(x => x.ChunkX == chunkCords.x && x.ChunkZ == chunkCords.y);
         if (gc != null)
@@ -309,15 +309,15 @@ public static class Extensions
 
 public enum BlockType
 {
-    Air,
-    Stone,
-    Dirt,
-    Grass,
-    Water,
-    Wood,
-    Leaves,
-    IronOre,
-    DiamondOre,
-    GoldOre,
-    CoalOre
+    Air = 0,
+    Stone = 1,
+    Dirt = 2,
+    Grass = 3,
+    Water = 4,
+    Wood = 5,
+    Leaves = 6,
+    IronOre = 7,
+    DiamondOre = 8,
+    GoldOre = 9,
+    CoalOre = 10
 }

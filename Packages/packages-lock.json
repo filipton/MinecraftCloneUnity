@@ -1,5 +1,12 @@
 {
   "dependencies": {
+    "com.ionic.zlib": {
+      "version": "https://github.com/PixelWizards/com.ionic.zlib.git",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "c2603651d2947fe3995bdd0bd2540fe4543f034e"
+    },
     "com.unity.collab-proxy": {
       "version": "1.3.9",
       "depth": 0,

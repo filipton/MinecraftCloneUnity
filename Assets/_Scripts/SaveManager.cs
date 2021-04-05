@@ -1,5 +1,11 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.IO;
+using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
+using System.Text;
+using System.Threading.Tasks;
 using UnityEngine;
 
 public class SaveManager : MonoBehaviour
@@ -8,7 +14,7 @@ public class SaveManager : MonoBehaviour
 
     [Header("SaveSystem Settings")]
     public int RegionSizeInChunks = 32;
-    public List<RegionData> regions = new List<RegionData>();
+    public Dictionary<KeyValuePair<int, int>, EditedChunk> chunks = new Dictionary<KeyValuePair<int, int>, EditedChunk>();
 
 
     private void Awake()
@@ -18,81 +24,40 @@ public class SaveManager : MonoBehaviour
 
 	void Start()
     {
-        
+        //File.WriteAllBytes(@"D:\test.txt", ChunkDataToBytesArray(b));
     }
 
     void Update()
     {
-        
+		if (Input.GetKeyDown(KeyCode.Return))
+		{
+            SaveWorld();
+		}
     }
 
-    public void SaveBlock(int x, int y, int z, BlockType block)
+    public void SaveBlocks(int cX, int cZ, BlockType[,,] blocksToSave)
 	{
-        Vector2Int chunkC = GeneratorCore.GetChunkCords(x, z);
-        Vector2Int regC = GetRegion(chunkC.x, chunkC.y);
+        Vector2Int chunkC = new Vector2Int(cX, cZ);
+        KeyValuePair<int, int> chunkKVP = new KeyValuePair<int, int>(cX, cZ);
 
-        int index = regions.FindIndex(g => g.RegionCords == regC);
-        if (regions.FindIndex(g => g.RegionCords == regC) < 0)
-		{
-            regions.Add(new RegionData(regC, new List<EditedChunk>()));
-            index = regions.Count - 1;
-		}
-
-        RegionData regData = regions[index];
-        int ei = regData.editedChunks.FindIndex(o => o.ChunkCords == chunkC);
-        if (ei < 0)
-		{
-            regData.editedChunks.Add(new EditedChunk(chunkC, new List<EditedBlock>()));
-            ei = regData.editedChunks.Count - 1;
-		}
-
-        EditedChunk edChunk = regData.editedChunks[ei];
-        edChunk.editedBlocks.Add(new EditedBlock(x, y, z, block));
-
-        regions[index] = regData;
+        chunks[chunkKVP] = new EditedChunk(chunkC, blocksToSave);
     }
 
-    public bool IsBlockSaved(int x, int y, int z)
+    public bool TryGetSavedBlocks(int cX, int cZ, out BlockType[,,] blocks)
 	{
-        Vector2Int chunkC = GeneratorCore.GetChunkCords(x, z);
-        Vector2Int regC = GetRegion(chunkC.x, chunkC.y);
+        KeyValuePair<int, int> chunkKVP = new KeyValuePair<int, int>(cX, cZ);
 
-        int index = regions.FindIndex(g => g.RegionCords == regC);
-        if (regions.FindIndex(g => g.RegionCords == regC) > -1)
-        {
-            int ei = regions[index].editedChunks.FindIndex(o => o.ChunkCords == chunkC);
-            if (ei < -1)
-            {
-                if (regions[index].editedChunks[ei].editedBlocks.FindIndex(e => e.x == x && e.y == y && e.z == z) > -1)
-				{
-                    return true;
-				}
-            }
+		if (chunks.ContainsKey(chunkKVP))
+		{
+            blocks = chunks[chunkKVP].ChunkBlocks;
+            return true;
         }
 
-        return false;
-    }
-
-    public bool TryGetEditedChunk(int cX, int cZ, out EditedChunk editedChunk)
-	{
-        Vector2Int regionCords = GetRegion(cX, cZ);
-
-        int regIndex = regions.FindIndex(r => r.RegionCords == regionCords);
-        if(regIndex > -1)
-		{
-            int chunkIndex = regions[regIndex].editedChunks.FindIndex(c => c.ChunkCords.x == cX && c.ChunkCords.y == cZ);
-            if(chunkIndex > -1)
-			{
-                editedChunk = regions[regIndex].editedChunks[chunkIndex];
-                return true;
-			}
-		}
-
-        editedChunk = new EditedChunk();
+        blocks = new BlockType[GeneratorCore.singleton.ChunkSizeXZ, GeneratorCore.singleton.ChunkSizeY, GeneratorCore.singleton.ChunkSizeXZ];
         return false;
 	}
 
-    public bool GetBlock(int x, int y, int z, out BlockType blockType)
+    /*public bool TryGetBlock(int x, int y, int z, out BlockType blockType)
     {
         Vector2Int chunkC = GeneratorCore.GetChunkCords(x, z);
         Vector2Int regC = GetRegion(chunkC.x, chunkC.y);
@@ -103,10 +68,10 @@ public class SaveManager : MonoBehaviour
             int ei = regions[index].editedChunks.FindIndex(o => o.ChunkCords == chunkC);
             if (ei > -1)
             {
-                int eb = regions[index].editedChunks[ei].editedBlocks.FindIndex(e => e.x == x && e.y == y && e.z == z);
-                if (eb > -1)
-                {
-                    blockType = regions[index].editedChunks[ei].editedBlocks[eb].blockType;
+                if(regions[index].editedChunks[ei].ChunkBlocks.Length > 0)
+				{
+                    Vector3 local = GeneratorChunk.GetLocalChunksBlockCords(x, y, z, chunkC.x, chunkC.y);
+                    blockType = regions[index].editedChunks[ei].ChunkBlocks[(int)local.x, (int)local.y, (int)local.z];
                     return true;
                 }
             }
@@ -114,53 +79,155 @@ public class SaveManager : MonoBehaviour
 
         blockType = BlockType.Air;
         return false;
+    }*/
+
+    public bool EditBlock(int x, int y, int z, BlockType blockType)
+    {
+        Vector2Int chunkC = GeneratorCore.GetChunkCords(x, z);
+        KeyValuePair<int, int> chunkKVP = new KeyValuePair<int, int>(chunkC.x, chunkC.y);
+
+        if (chunks.ContainsKey(chunkKVP))
+        {
+            Vector3 local = GeneratorChunk.GetLocalChunksBlockCords(x, y, z, chunkC.x, chunkC.y);
+        chunks[chunkKVP].ChunkBlocks[(int)local.x, (int)local.y, (int)local.z] = blockType;
+
+        return true;
+        }
+
+        return false;
+    }
+
+    public void SaveWorld()
+	{
+        //BinaryFormatter bf = new BinaryFormatter();
+        //FileStream file = File.Open(@"D:\save.dat", FileMode.Open);
+        //BlockType[,,] b = (BlockType[,,])bf.Deserialize(file);
+        //file.Close();
+
+        Task.Run(() =>
+        {
+            List<SerializedChunk> serializedChunks = new List<SerializedChunk>();
+
+            foreach (EditedChunk edChunk in chunks.Values)
+            {
+                serializedChunks.Add(new SerializedChunk(new SerializedChunkCords(edChunk.ChunkCords), ChunkDataToBytesArray(edChunk.ChunkBlocks)));
+            }
+
+            BinaryFormatter bf = new BinaryFormatter();
+            FileStream file = File.Open($@"D:\World\r.0.0.dat", FileMode.OpenOrCreate);
+            bf.Serialize(file, serializedChunks);
+            file.Close();
+
+            print("DONE!!!");
+        });
+    }
+
+    public byte[] ChunkDataToBytesArray(BlockType[,,] blocks)
+    {
+        List<byte> tmp = new List<byte>();
+
+        byte ChunkXZ = (byte)GeneratorCore.singleton.ChunkSizeXZ;
+        byte ChunkY = (byte)(GeneratorCore.singleton.ChunkSizeY - 1);
+
+        tmp.Add(ChunkXZ); //CHUNK XZ
+        tmp.Add(ChunkY);  //CHUNK Y
+
+        for (int x = 0; x < ChunkXZ; x++)
+        {
+            for (int y = 0; y <= ChunkY; y++)
+            {
+                for (int z = 0; z < ChunkXZ; z++)
+                {
+                    tmp.Add((byte)blocks[x, y, z]);
+                }
+            }
+        }
+
+        return Ionic.Zlib.DeflateStream.CompressBuffer(tmp.ToArray());
+    }
+
+    public BlockType[,,] ByteArrayToChunkData(byte[] compresedData)
+    {
+        byte[] data = Ionic.Zlib.DeflateStream.UncompressBuffer(compresedData);
+        BlockType[,,] tmp = new BlockType[0, 0, 0];
+
+        if (data.Length > 2)
+        {
+            byte ChunkXZ = data[0];
+            byte ChunkY = data[1];
+
+            tmp = new BlockType[ChunkXZ, ChunkY + 1, ChunkXZ];
+
+            int index = 2;
+            for (int x = 0; x < ChunkXZ; x++)
+            {
+                for (int y = 0; y <= ChunkY; y++)
+                {
+                    for (int z = 0; z < ChunkXZ; z++)
+                    {
+                        tmp[x, y, z] = (BlockType)data[index];
+                        index++;
+                    }
+                }
+            }
+        }
+
+        return tmp;
     }
 
     public Vector2Int GetRegion(int cX, int cZ)
 	{
-        return new Vector2Int(Mathf.FloorToInt(cX / RegionSizeInChunks), Mathf.FloorToInt(cX / RegionSizeInChunks));
+        return new Vector2Int(Mathf.FloorToInt(cX / RegionSizeInChunks), Mathf.FloorToInt(cZ / RegionSizeInChunks));
 	}
 }
 
-[System.Serializable]
-public struct RegionData
-{
-    public Vector2Int RegionCords;
-    public List<EditedChunk> editedChunks;
-
-    public RegionData(Vector2Int rcords, List<EditedChunk> edC)
-    {
-        RegionCords = rcords;
-        editedChunks = edC;
-    }
-}
-
-[System.Serializable]
+[Serializable]
 public struct EditedChunk
 {
     public Vector2Int ChunkCords;
-    public List<EditedBlock> editedBlocks;
+    public BlockType[,,] ChunkBlocks;
 
-    public EditedChunk(Vector2Int ccords, List<EditedBlock> edB)
+    public EditedChunk(Vector2Int ccords, BlockType[,,] chuBlocks)
 	{
         ChunkCords = ccords;
-        editedBlocks = edB;
+        ChunkBlocks = chuBlocks;
 	}
 }
 
-[System.Serializable]
-public struct EditedBlock
+
+[Serializable]
+public struct SerializedChunk
+{
+    public SerializedChunkCords ChunkCords;
+    public byte[] ChunkData;
+
+    public SerializedChunk(SerializedChunkCords ccords, byte[] data)
+    {
+        ChunkCords = ccords;
+        ChunkData = data;
+    }
+}
+
+[Serializable]
+public struct SerializedChunkCords
 {
     public int x;
-    public int y;
     public int z;
-    public BlockType blockType;
 
-    public EditedBlock(int _x, int _y, int _z, BlockType btype)
+    public SerializedChunkCords(int x, int z)
 	{
-        x = _x;
-        y = _y;
-        z = _z;
-        blockType = btype;
+        this.x = x;
+        this.z = z;
+	}
+
+    public SerializedChunkCords(Vector2Int vec)
+	{
+        x = vec.x;
+        z = vec.y;
+	}
+
+    public Vector2Int GetVector2Int()
+	{
+        return new Vector2Int(x, z);
 	}
 }

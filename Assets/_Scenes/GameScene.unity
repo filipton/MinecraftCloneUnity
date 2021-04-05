@@ -496,7 +496,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   RegionSizeInChunks: 32
-  editedChunks: []
+  regions: []
 --- !u!114 &734620685
 MonoBehaviour:
   m_ObjectHideFlags: 0

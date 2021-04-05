@@ -2,10 +2,14 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
+using Ionic.Zlib;
 
 public class GeneratorChunk : MonoBehaviour
 {
@@ -23,72 +27,69 @@ public class GeneratorChunk : MonoBehaviour
         ChunkX = cX;
         ChunkZ = cZ;
 
-        int depthY = 0;
+        if (!SaveManager.singleton.TryGetSavedBlocks(cX, cZ, out Blocks))
+		{
+            int depthY = 0;
 
-        for (int x = cX * GeneratorCore.singleton.ChunkSizeXZ; x < (cX * GeneratorCore.singleton.ChunkSizeXZ) + GeneratorCore.singleton.ChunkSizeXZ; x++)
-        {
-            for (int z = cZ * GeneratorCore.singleton.ChunkSizeXZ; z < (cZ * GeneratorCore.singleton.ChunkSizeXZ) + GeneratorCore.singleton.ChunkSizeXZ; z++)
+            for (int x = cX * GeneratorCore.singleton.ChunkSizeXZ; x < (cX * GeneratorCore.singleton.ChunkSizeXZ) + GeneratorCore.singleton.ChunkSizeXZ; x++)
             {
-                for (int y = GeneratorCore.singleton.ChunkSizeY - 1; y >= 0; y--)
+                for (int z = cZ * GeneratorCore.singleton.ChunkSizeXZ; z < (cZ * GeneratorCore.singleton.ChunkSizeXZ) + GeneratorCore.singleton.ChunkSizeXZ; z++)
                 {
-                    float noiseValue = (float)GeneratorCore.singleton.simplex.GetValue(x * GeneratorCore.singleton.NoiseScaleXZ, y * GeneratorCore.singleton.NoiseScaleY, z * GeneratorCore.singleton.NoiseScaleXZ);
-
-                    Vector3 local = GetLocalChunksBlockCords(x, y, z, cX, cZ);
-                    int lx = (int)local.x;
-                    int ly = (int)local.y;
-                    int lz = (int)local.z;
-
-                    if (noiseValue >= GeneratorCore.singleton.GenCurve[y])
+                    for (int y = GeneratorCore.singleton.ChunkSizeY - 1; y >= 0; y--)
                     {
-                        if (depthY == 0)
-                        {
-                            Blocks[lx, ly, lz] = BlockType.Grass;
-                        }
-                        else if (depthY < 5)
-                        {
-                            Blocks[lx, ly, lz] = BlockType.Dirt;
-                        }
-                        else
-                        {
-                            Blocks[lx, ly, lz] = BlockType.Stone;
+                        float noiseValue = (float)GeneratorCore.singleton.simplex.GetValue(x * GeneratorCore.singleton.NoiseScaleXZ, y * GeneratorCore.singleton.NoiseScaleY, z * GeneratorCore.singleton.NoiseScaleXZ);
 
-                            foreach (AdvBlocksGenObj BlockGen in GeneratorCore.singleton.AdvancedBlocksGeneration)
-							{
-                                float PerlinValue = Perlin.Noise(x * BlockGen.NoiseScale, y * BlockGen.NoiseScale, z * BlockGen.NoiseScale);
-                                if (ly <= BlockGen.MaxY && ly >= BlockGen.MinY && PerlinValue > BlockGen.Threshold)
+                        Vector3 local = GetLocalChunksBlockCords(x, y, z, cX, cZ);
+                        int lx = (int)local.x;
+                        int ly = (int)local.y;
+                        int lz = (int)local.z;
+
+                        if (noiseValue >= GeneratorCore.singleton.GenCurve[y])
+                        {
+                            if (depthY == 0)
+                            {
+                                Blocks[lx, ly, lz] = BlockType.Grass;
+                            }
+                            else if (depthY < 5)
+                            {
+                                Blocks[lx, ly, lz] = BlockType.Dirt;
+                            }
+                            else
+                            {
+                                Blocks[lx, ly, lz] = BlockType.Stone;
+
+                                foreach (AdvBlocksGenObj BlockGen in GeneratorCore.singleton.AdvancedBlocksGeneration)
                                 {
-                                    Blocks[lx, ly, lz] = BlockGen.blockType;
+                                    float PerlinValue = Perlin.Noise(x * BlockGen.NoiseScale, y * BlockGen.NoiseScale, z * BlockGen.NoiseScale);
+                                    if (ly <= BlockGen.MaxY && ly >= BlockGen.MinY && PerlinValue > BlockGen.Threshold)
+                                    {
+                                        Blocks[lx, ly, lz] = BlockGen.blockType;
+                                    }
                                 }
                             }
-                        }
 
-                        depthY++;
-                    }
-                    else
-                    {
-                        if (y > 63)
-                        {
-                            Blocks[lx, ly, lz] = BlockType.Air;
+                            depthY++;
                         }
                         else
                         {
-                            Blocks[lx, ly, lz] = BlockType.Water;
-                            depthY++;
+                            if (y > 63)
+                            {
+                                Blocks[lx, ly, lz] = BlockType.Air;
+                            }
+                            else
+                            {
+                                Blocks[lx, ly, lz] = BlockType.Water;
+                                depthY++;
+                            }
                         }
                     }
+
+                    depthY = 0;
                 }
-
-                depthY = 0;
             }
-        }
 
-        if(SaveManager.singleton.TryGetEditedChunk(cX, cZ, out EditedChunk ec))
-		{
-            foreach(EditedBlock edb in ec.editedBlocks)
-			{
-                SetBlockGlobal(edb.x, edb.y, edb.z, edb.blockType, false);
-			}
-		}
+            SaveManager.singleton.SaveBlocks(cX, cZ, Blocks);
+        }
 
         GenerateChunkMesh();
     }
@@ -444,7 +445,6 @@ public class GeneratorChunk : MonoBehaviour
 
     public bool CheckIfFaceVisible(BlockType currBlock, int x, int y, int z)
 	{
-        //FUCK THIS SHIT IM OUT
         try
         {
             if (x >= GeneratorCore.singleton.ChunkSizeXZ) return CheckIfRenderBlockInChunk(currBlock, ChunkX + 1, ChunkZ, 0, y, z);
@@ -471,36 +471,39 @@ public class GeneratorChunk : MonoBehaviour
 
     public bool CheckIfRenderBlockInChunk(BlockType currBlock, int cX, int cZ, int x, int y, int z)
 	{
-        //WHY THE FUCK THIS ISNT WORKING?!
-
         try
         {
             x += cX * GeneratorCore.singleton.ChunkSizeXZ;
             z += cZ * GeneratorCore.singleton.ChunkSizeXZ;
 
-            if(SaveManager.singleton.GetBlock(x, y, z, out BlockType blockType))
-			{
-                return blockType == BlockType.Air || (currBlock != BlockType.Water && blockType == BlockType.Water);
-            }
-			else
-			{
-                float noiseValue = (float)GeneratorCore.singleton.simplex.GetValue(x * GeneratorCore.singleton.NoiseScaleXZ, y * GeneratorCore.singleton.NoiseScaleY, z * GeneratorCore.singleton.NoiseScaleXZ);
+            float noiseValue = (float)GeneratorCore.singleton.simplex.GetValue(x * GeneratorCore.singleton.NoiseScaleXZ, y * GeneratorCore.singleton.NoiseScaleY, z * GeneratorCore.singleton.NoiseScaleXZ);
 
-                if (!(noiseValue >= GeneratorCore.singleton.GenCurve[y]))
+            if (!(noiseValue >= GeneratorCore.singleton.GenCurve[y]))
+            {
+                if (y > 63)
                 {
-                    if (y > 63)
+                    return true;
+                }
+                else
+                {
+                    if (currBlock != BlockType.Water)
                     {
                         return true;
                     }
-                    else
-                    {
-                        if (currBlock != BlockType.Water)
-                        {
-                            return true;
-                        }
-                    }
                 }
             }
+
+            /*int index = GeneratorCore.singleton.generatorChunks.FindIndex(d => d.ChunkX == cX && d.ChunkZ == cZ);
+            if(index > -1)
+			{
+                Vector3 local = GetLocalChunksBlockCords(x, y, z, cX, cZ);
+                return GeneratorCore.singleton.generatorChunks[index].Blocks[(int)local.x, (int)local.y, (int)local.z] == BlockType.Air || (currBlock != BlockType.Water && GeneratorCore.singleton.generatorChunks[index].Blocks[(int)local.x, (int)local.y, (int)local.z] == BlockType.Water);
+            }
+            else
+            {
+                
+            }*/
+
 
             /*if (GeneratorCore.singleton.genChunks.ContainsKey(new KeyValuePair<int, int>(cX, cZ)))
             {
@@ -516,12 +519,12 @@ public class GeneratorChunk : MonoBehaviour
 				}
             }*/
         }
-        catch { UnityEngine.Debug.LogWarning("Chunk was moved while Accessing it!"); }
+        catch(Exception e) { UnityEngine.Debug.LogWarning(e); }
 
         return false;
     }
 
-    public Vector3 GetLocalChunksBlockCords(int x, int y, int z, int cX, int cZ)
+    public static Vector3 GetLocalChunksBlockCords(int x, int y, int z, int cX, int cZ)
     {
         x = x - (cX * GeneratorCore.singleton.ChunkSizeXZ);
         z = z - (cZ * GeneratorCore.singleton.ChunkSizeXZ);
