@@ -14,7 +14,7 @@ public class SaveManager : MonoBehaviour
 
     [Header("SaveSystem Settings")]
     public int RegionSizeInChunks = 32;
-    public Dictionary<KeyValuePair<int, int>, EditedChunk> chunks = new Dictionary<KeyValuePair<int, int>, EditedChunk>();
+    public Dictionary<Vector2Int, Region> regions = new Dictionary<Vector2Int, Region>();
 
 
     private void Awake()
@@ -38,18 +38,21 @@ public class SaveManager : MonoBehaviour
     public void SaveBlocks(int cX, int cZ, BlockType[,,] blocksToSave)
 	{
         Vector2Int chunkC = new Vector2Int(cX, cZ);
-        KeyValuePair<int, int> chunkKVP = new KeyValuePair<int, int>(cX, cZ);
+        Vector2Int regC = GetRegion(cX, cZ);
 
-        chunks[chunkKVP] = new EditedChunk(chunkC, blocksToSave);
+        if (!regions.ContainsKey(regC)) regions[regC] = new Region(regC, new Dictionary<Vector2Int, EditedChunk>());
+
+        regions[regC].editedChunks[chunkC] = new EditedChunk(chunkC, blocksToSave);
     }
 
     public bool TryGetSavedBlocks(int cX, int cZ, out BlockType[,,] blocks)
 	{
-        KeyValuePair<int, int> chunkKVP = new KeyValuePair<int, int>(cX, cZ);
+        Vector2Int chunkC = new Vector2Int(cX, cZ);
+        Vector2Int regC = GetRegion(cX, cZ);
 
-		if (chunks.ContainsKey(chunkKVP))
+        if (regions.ContainsKey(regC) && regions[regC].editedChunks.ContainsKey(chunkC))
 		{
-            blocks = chunks[chunkKVP].ChunkBlocks;
+            blocks = regions[regC].editedChunks[chunkC].ChunkBlocks;
             return true;
         }
 
@@ -84,14 +87,14 @@ public class SaveManager : MonoBehaviour
     public bool EditBlock(int x, int y, int z, BlockType blockType)
     {
         Vector2Int chunkC = GeneratorCore.GetChunkCords(x, z);
-        KeyValuePair<int, int> chunkKVP = new KeyValuePair<int, int>(chunkC.x, chunkC.y);
+        Vector2Int regC = GetRegion(chunkC.x, chunkC.y);
 
-        if (chunks.ContainsKey(chunkKVP))
+        if (regions.ContainsKey(regC) && regions[regC].editedChunks.ContainsKey(chunkC))
         {
             Vector3 local = GeneratorChunk.GetLocalChunksBlockCords(x, y, z, chunkC.x, chunkC.y);
-        chunks[chunkKVP].ChunkBlocks[(int)local.x, (int)local.y, (int)local.z] = blockType;
+            regions[regC].editedChunks[chunkC].ChunkBlocks[(int)local.x, (int)local.y, (int)local.z] = blockType;
 
-        return true;
+            return true;
         }
 
         return false;
@@ -106,19 +109,26 @@ public class SaveManager : MonoBehaviour
 
         Task.Run(() =>
         {
-            List<SerializedChunk> serializedChunks = new List<SerializedChunk>();
+            SerializedWorld serializedWorld = new SerializedWorld(GeneratorCore.singleton.Seed);
 
-            foreach (EditedChunk edChunk in chunks.Values)
-            {
-                serializedChunks.Add(new SerializedChunk(new SerializedChunkCords(edChunk.ChunkCords), ChunkDataToBytesArray(edChunk.ChunkBlocks)));
+            foreach (Region reg in regions.Values)
+			{
+                Task.Run(() =>
+                {
+                    Dictionary<SerializedCords, SerializedChunk> tmpDict = new Dictionary<SerializedCords, SerializedChunk>();
+
+                    foreach (var chunkKVP in reg.editedChunks)
+                    {
+                        tmpDict[new SerializedCords(chunkKVP.Key)] = new SerializedChunk(ChunkDataToBytesArray(chunkKVP.Value.ChunkBlocks));
+                    }
+
+                    BinaryFormatter bf = new BinaryFormatter();
+                    FileStream file = File.Open($@"D:\World\reg.{reg.RegionCords.x}.{reg.RegionCords.y}.dat", FileMode.OpenOrCreate);
+                    bf.Serialize(file, tmpDict);
+                    file.Close();
+                    print($@"SAVED REGION -> D:\World\reg.{reg.RegionCords.x}.{reg.RegionCords.y}.dat");
+                });
             }
-
-            BinaryFormatter bf = new BinaryFormatter();
-            FileStream file = File.Open($@"D:\World\r.0.0.dat", FileMode.OpenOrCreate);
-            bf.Serialize(file, serializedChunks);
-            file.Close();
-
-            print("DONE!!!");
         });
     }
 
@@ -181,7 +191,18 @@ public class SaveManager : MonoBehaviour
 	}
 }
 
-[Serializable]
+public struct Region
+{
+    public Vector2Int RegionCords;
+    public Dictionary<Vector2Int, EditedChunk> editedChunks;
+
+    public Region(Vector2Int rcords, Dictionary<Vector2Int, EditedChunk> edChunks)
+    {
+        RegionCords = rcords;
+        editedChunks = edChunks;
+    }
+}
+
 public struct EditedChunk
 {
     public Vector2Int ChunkCords;
@@ -194,33 +215,52 @@ public struct EditedChunk
 	}
 }
 
+[Serializable]
+public struct SerializedWorld
+{
+    public double Seed;
+
+    public SerializedWorld(double seed)
+	{
+        Seed = seed;
+	}
+}
+
+[Serializable]
+public struct SerializedRegion
+{
+    public Dictionary<SerializedCords, SerializedChunk> editedChunks;
+
+    public SerializedRegion(Dictionary<SerializedCords, SerializedChunk> edChunks)
+    {
+        editedChunks = edChunks;
+    }
+}
 
 [Serializable]
 public struct SerializedChunk
 {
-    public SerializedChunkCords ChunkCords;
     public byte[] ChunkData;
 
-    public SerializedChunk(SerializedChunkCords ccords, byte[] data)
+    public SerializedChunk(byte[] data)
     {
-        ChunkCords = ccords;
         ChunkData = data;
     }
 }
 
 [Serializable]
-public struct SerializedChunkCords
+public struct SerializedCords
 {
     public int x;
     public int z;
 
-    public SerializedChunkCords(int x, int z)
+    public SerializedCords(int x, int z)
 	{
         this.x = x;
         this.z = z;
 	}
 
-    public SerializedChunkCords(Vector2Int vec)
+    public SerializedCords(Vector2Int vec)
 	{
         x = vec.x;
         z = vec.y;
