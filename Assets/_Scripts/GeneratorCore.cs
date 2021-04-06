@@ -38,14 +38,10 @@ public class GeneratorCore : MonoBehaviour
     [Header("Generator Fields")]
     public List<GeneratorChunk> generatorChunks = new List<GeneratorChunk>();
     public List<AdvBlocksGenObj> AdvancedBlocksGeneration = new List<AdvBlocksGenObj>();
-
-    //public Dictionary<KeyValuePair<int, int>, GeneratorChunk> genChunks = new Dictionary<KeyValuePair<int, int>, GeneratorChunk>();
     public Transform player;
     public Vector2Int _offset = new Vector2Int();
 
     Thread regenThread;
-
-    //public bool Test = false;
 
     private void Awake()
 	{
@@ -56,7 +52,6 @@ public class GeneratorCore : MonoBehaviour
 		{
             Seed = UnityEngine.Random.Range(-320000000, 320000000);
 		}
-        //genChunks.RenameKey(new KeyValuePair<int, int>(1, 1), new KeyValuePair<int, int>(0, 0));
 	}
 
 	private void Start()
@@ -184,7 +179,6 @@ public class GeneratorCore : MonoBehaviour
                 gc.meshRenderer = mr;
 
                 generatorChunks.Add(gc);
-                //genChunks[new KeyValuePair<int, int>(x + _offset.x, z + _offset.y)] = gc;
 
                 Task.Run(() =>
                 {
@@ -243,7 +237,6 @@ public class GeneratorCore : MonoBehaviour
                         Task.Run(() =>
                         {
                             GeneratorChunk gc = ChunksToRegenerate.Dequeue();
-                            //genChunks.RenameKey(new KeyValuePair<int, int>(gc.ChunkX, gc.ChunkZ), new KeyValuePair<int, int>(x, z));
 
                             gc.GenerateChunk(x, z);
                         });
@@ -285,17 +278,6 @@ public struct AdvBlocksGenObj
 
 public static class Extensions
 {
-    public static void RenameKey<TKey, TValue>(this IDictionary<TKey, TValue> dic,
-                                      TKey fromKey, TKey toKey)
-    {
-		if (dic.ContainsKey(fromKey))
-		{
-            TValue value = dic[fromKey];
-            dic.Remove(fromKey);
-            dic[toKey] = value;
-        }
-    }
-
     public static float[] GenerateCurveArray(this AnimationCurve self, int size)
     {
         float[] returnArray = new float[size];

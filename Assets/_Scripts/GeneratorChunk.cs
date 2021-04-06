@@ -37,6 +37,8 @@ public class GeneratorChunk : MonoBehaviour
                 {
                     for (int y = GeneratorCore.singleton.ChunkSizeY - 1; y >= 0; y--)
                     {
+                        if (ChunkX != cX || ChunkZ != cZ) return;
+
                         float noiseValue = (float)GeneratorCore.singleton.simplex.GetValue(x * GeneratorCore.singleton.NoiseScaleXZ, y * GeneratorCore.singleton.NoiseScaleY, z * GeneratorCore.singleton.NoiseScaleXZ);
 
                         Vector3 local = GetLocalChunksBlockCords(x, y, z, cX, cZ);
