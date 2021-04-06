@@ -476,19 +476,26 @@ public class GeneratorChunk : MonoBehaviour
             x += cX * GeneratorCore.singleton.ChunkSizeXZ;
             z += cZ * GeneratorCore.singleton.ChunkSizeXZ;
 
-            float noiseValue = (float)GeneratorCore.singleton.simplex.GetValue(x * GeneratorCore.singleton.NoiseScaleXZ, y * GeneratorCore.singleton.NoiseScaleY, z * GeneratorCore.singleton.NoiseScaleXZ);
+            if (SaveManager.singleton.TryGetBlock(x, y, z, out BlockType bType))
+			{
+                return bType == BlockType.Air || (currBlock != BlockType.Water && bType == BlockType.Water);
+            }
+			else
+			{
+                float noiseValue = (float)GeneratorCore.singleton.simplex.GetValue(x * GeneratorCore.singleton.NoiseScaleXZ, y * GeneratorCore.singleton.NoiseScaleY, z * GeneratorCore.singleton.NoiseScaleXZ);
 
-            if (!(noiseValue >= GeneratorCore.singleton.GenCurve[y]))
-            {
-                if (y > 63)
+                if (!(noiseValue >= GeneratorCore.singleton.GenCurve[y]))
                 {
-                    return true;
-                }
-                else
-                {
-                    if (currBlock != BlockType.Water)
+                    if (y > 63)
                     {
                         return true;
+                    }
+                    else
+                    {
+                        if (currBlock != BlockType.Water)
+                        {
+                            return true;
+                        }
                     }
                 }
             }

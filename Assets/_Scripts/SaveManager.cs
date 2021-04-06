@@ -20,7 +20,7 @@ public class SaveManager : MonoBehaviour
     private void Awake()
 	{
         singleton = this;
-	}
+    }
 
 	void Start()
     {
@@ -40,9 +40,9 @@ public class SaveManager : MonoBehaviour
         Vector2Int chunkC = new Vector2Int(cX, cZ);
         Vector2Int regC = GetRegion(cX, cZ);
 
-        if (!regions.ContainsKey(regC)) regions[regC] = new Region(regC, new Dictionary<Vector2Int, EditedChunk>());
+        if (!regions.ContainsKey(regC)) regions[regC] = new Region(regC, new Dictionary<Vector2Int, SerializedChunk>());
 
-        regions[regC].editedChunks[chunkC] = new EditedChunk(chunkC, blocksToSave);
+        regions[regC].editedChunks[chunkC] = new SerializedChunk(ChunkDataToBytesArray(blocksToSave, false));
     }
 
     public bool TryGetSavedBlocks(int cX, int cZ, out BlockType[,,] blocks)
@@ -52,7 +52,7 @@ public class SaveManager : MonoBehaviour
 
         if (regions.ContainsKey(regC) && regions[regC].editedChunks.ContainsKey(chunkC))
 		{
-            blocks = regions[regC].editedChunks[chunkC].ChunkBlocks;
+            blocks = ByteArrayToChunkData(regions[regC].editedChunks[chunkC].ChunkData, false);
             return true;
         }
 
@@ -60,29 +60,23 @@ public class SaveManager : MonoBehaviour
         return false;
 	}
 
-    /*public bool TryGetBlock(int x, int y, int z, out BlockType blockType)
+    public bool TryGetBlock(int x, int y, int z, out BlockType blockType)
     {
         Vector2Int chunkC = GeneratorCore.GetChunkCords(x, z);
         Vector2Int regC = GetRegion(chunkC.x, chunkC.y);
 
-        int index = regions.FindIndex(g => g.RegionCords == regC);
-        if (regions.FindIndex(g => g.RegionCords == regC) > -1)
-        {
-            int ei = regions[index].editedChunks.FindIndex(o => o.ChunkCords == chunkC);
-            if (ei > -1)
-            {
-                if(regions[index].editedChunks[ei].ChunkBlocks.Length > 0)
-				{
-                    Vector3 local = GeneratorChunk.GetLocalChunksBlockCords(x, y, z, chunkC.x, chunkC.y);
-                    blockType = regions[index].editedChunks[ei].ChunkBlocks[(int)local.x, (int)local.y, (int)local.z];
-                    return true;
-                }
-            }
+        if(regions.ContainsKey(regC) && regions[regC].editedChunks.ContainsKey(chunkC))
+		{
+            Vector3 local = GeneratorChunk.GetLocalChunksBlockCords(x, y, z, chunkC.x, chunkC.y);
+            int index = GetArrayCords((int)local.x, (int)local.y, (int)local.z);
+
+            blockType = (BlockType)regions[regC].editedChunks[chunkC].ChunkData[index];
+            return true;
         }
 
         blockType = BlockType.Air;
         return false;
-    }*/
+    }
 
     public bool EditBlock(int x, int y, int z, BlockType blockType)
     {
@@ -92,9 +86,13 @@ public class SaveManager : MonoBehaviour
         if (regions.ContainsKey(regC) && regions[regC].editedChunks.ContainsKey(chunkC))
         {
             Vector3 local = GeneratorChunk.GetLocalChunksBlockCords(x, y, z, chunkC.x, chunkC.y);
-            regions[regC].editedChunks[chunkC].ChunkBlocks[(int)local.x, (int)local.y, (int)local.z] = blockType;
+            int index = GetArrayCords((int)local.x, (int)local.y, (int)local.z);
 
+            regions[regC].editedChunks[chunkC].ChunkData[index] = (byte)blockType;
             return true;
+
+            //regions[regC].editedChunks[chunkC].ChunkBlocks[(int)local.x, (int)local.y, (int)local.z] = blockType;
+            //return true;
         }
 
         return false;
@@ -119,7 +117,7 @@ public class SaveManager : MonoBehaviour
 
                     foreach (var chunkKVP in reg.editedChunks)
                     {
-                        tmpDict[new SerializedCords(chunkKVP.Key)] = new SerializedChunk(ChunkDataToBytesArray(chunkKVP.Value.ChunkBlocks));
+                        tmpDict[new SerializedCords(chunkKVP.Key)] = new SerializedChunk(Ionic.Zlib.DeflateStream.CompressBuffer(chunkKVP.Value.ChunkData));
                     }
 
                     BinaryFormatter bf = new BinaryFormatter();
@@ -132,19 +130,16 @@ public class SaveManager : MonoBehaviour
         });
     }
 
-    public byte[] ChunkDataToBytesArray(BlockType[,,] blocks)
+    public byte[] ChunkDataToBytesArray(BlockType[,,] blocks, bool compress = true)
     {
         List<byte> tmp = new List<byte>();
 
-        byte ChunkXZ = (byte)GeneratorCore.singleton.ChunkSizeXZ;
-        byte ChunkY = (byte)(GeneratorCore.singleton.ChunkSizeY - 1);
-
-        tmp.Add(ChunkXZ); //CHUNK XZ
-        tmp.Add(ChunkY);  //CHUNK Y
+        int ChunkXZ = GeneratorCore.singleton.ChunkSizeXZ;
+        int ChunkY = GeneratorCore.singleton.ChunkSizeY;
 
         for (int x = 0; x < ChunkXZ; x++)
         {
-            for (int y = 0; y <= ChunkY; y++)
+            for (int y = 0; y < ChunkY; y++)
             {
                 for (int z = 0; z < ChunkXZ; z++)
                 {
@@ -153,25 +148,41 @@ public class SaveManager : MonoBehaviour
             }
         }
 
-        return Ionic.Zlib.DeflateStream.CompressBuffer(tmp.ToArray());
+		if (compress)
+		{
+            return Ionic.Zlib.DeflateStream.CompressBuffer(tmp.ToArray());
+        }
+		else
+		{
+            return tmp.ToArray();
+        }
     }
 
-    public BlockType[,,] ByteArrayToChunkData(byte[] compresedData)
+    public BlockType[,,] ByteArrayToChunkData(byte[] compresedData, bool compresed = true)
     {
-        byte[] data = Ionic.Zlib.DeflateStream.UncompressBuffer(compresedData);
+        byte[] data = new byte[0];
+		if (compresed)
+		{
+            data = Ionic.Zlib.DeflateStream.UncompressBuffer(compresedData);
+        }
+		else
+		{
+            data = compresedData;
+		}
+
         BlockType[,,] tmp = new BlockType[0, 0, 0];
 
-        if (data.Length > 2)
+        if (data.Length > 0)
         {
-            byte ChunkXZ = data[0];
-            byte ChunkY = data[1];
+            int ChunkXZ = GeneratorCore.singleton.ChunkSizeXZ;
+            int ChunkY = GeneratorCore.singleton.ChunkSizeY;
 
-            tmp = new BlockType[ChunkXZ, ChunkY + 1, ChunkXZ];
+            tmp = new BlockType[ChunkXZ, ChunkY, ChunkXZ];
 
-            int index = 2;
+            int index = 0;
             for (int x = 0; x < ChunkXZ; x++)
             {
-                for (int y = 0; y <= ChunkY; y++)
+                for (int y = 0; y < ChunkY; y++)
                 {
                     for (int z = 0; z < ChunkXZ; z++)
                     {
@@ -189,14 +200,19 @@ public class SaveManager : MonoBehaviour
 	{
         return new Vector2Int(Mathf.FloorToInt(cX / RegionSizeInChunks), Mathf.FloorToInt(cZ / RegionSizeInChunks));
 	}
+
+    public int GetArrayCords(int x, int y, int z)
+    {
+        return (x * GeneratorCore.singleton.ChunkSizeXZ * GeneratorCore.singleton.ChunkSizeY) + (y * GeneratorCore.singleton.ChunkSizeXZ) + z;
+    }
 }
 
 public struct Region
 {
     public Vector2Int RegionCords;
-    public Dictionary<Vector2Int, EditedChunk> editedChunks;
+    public Dictionary<Vector2Int, SerializedChunk> editedChunks;
 
-    public Region(Vector2Int rcords, Dictionary<Vector2Int, EditedChunk> edChunks)
+    public Region(Vector2Int rcords, Dictionary<Vector2Int, SerializedChunk> edChunks)
     {
         RegionCords = rcords;
         editedChunks = edChunks;
