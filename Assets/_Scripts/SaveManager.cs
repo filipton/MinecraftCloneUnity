@@ -14,11 +14,13 @@ public class SaveManager : MonoBehaviour
 
     [Header("SaveSystem Settings")]
     public int RegionSizeInChunks = 32;
+    public string SavesPath = @"D:\Worlds";
     public Dictionary<Vector2Int, Region> regions = new Dictionary<Vector2Int, Region>();
 
 
     private void Awake()
 	{
+        LoadWorld();
         singleton = this;
     }
 
@@ -107,27 +109,73 @@ public class SaveManager : MonoBehaviour
 
         Task.Run(() =>
         {
-            SerializedWorld serializedWorld = new SerializedWorld(GeneratorCore.singleton.Seed);
-
-            foreach (Region reg in regions.Values)
+			try
 			{
-                Task.Run(() =>
+                SerializedWorld serializedWorld = new SerializedWorld(GeneratorCore.singleton.Seed);
+
+                if (!Directory.Exists(Path.Combine(SavesPath, "world"))) Directory.CreateDirectory(Path.Combine(SavesPath, "world"));
+                if (!Directory.Exists(Path.Combine(SavesPath, "world", "regions"))) Directory.CreateDirectory(Path.Combine(SavesPath, "world", "regions"));
+
+                foreach (Region reg in regions.Values)
                 {
-                    Dictionary<SerializedCords, SerializedChunk> tmpDict = new Dictionary<SerializedCords, SerializedChunk>();
-
-                    foreach (var chunkKVP in reg.editedChunks)
+                    Task.Run(() =>
                     {
-                        tmpDict[new SerializedCords(chunkKVP.Key)] = new SerializedChunk(Ionic.Zlib.DeflateStream.CompressBuffer(chunkKVP.Value.ChunkData));
-                    }
+                        Dictionary<SerializedCords, SerializedChunk> tmpDict = new Dictionary<SerializedCords, SerializedChunk>();
 
-                    BinaryFormatter bf = new BinaryFormatter();
-                    FileStream file = File.Open($@"D:\World\reg.{reg.RegionCords.x}.{reg.RegionCords.y}.dat", FileMode.OpenOrCreate);
-                    bf.Serialize(file, tmpDict);
-                    file.Close();
-                    print($@"SAVED REGION -> D:\World\reg.{reg.RegionCords.x}.{reg.RegionCords.y}.dat");
-                });
+                        foreach (var chunkKVP in reg.editedChunks)
+                        {
+                            tmpDict[new SerializedCords(chunkKVP.Key)] = new SerializedChunk(Ionic.Zlib.DeflateStream.CompressBuffer(chunkKVP.Value.ChunkData));
+                        }
+
+                        BinaryFormatter bf = new BinaryFormatter();
+                        FileStream file = File.Open(Path.Combine(SavesPath, "world", "regions", $@"reg.{reg.RegionCords.x}.{reg.RegionCords.y}.dat"), FileMode.OpenOrCreate);
+                        bf.Serialize(file, tmpDict);
+                        file.Close();
+                    });
+                }
+
+                BinaryFormatter bf = new BinaryFormatter();
+                FileStream file = File.Open(Path.Combine(SavesPath, "world", "world.dat"), FileMode.OpenOrCreate);
+                bf.Serialize(file, serializedWorld);
+                file.Close();
             }
+            catch(Exception e) { Debug.Log(e); }
         });
+    }
+
+    public void LoadWorld()
+	{
+        SerializedWorld serializedWorld = new SerializedWorld();
+
+        if (!Directory.Exists(Path.Combine(SavesPath, "world")) || !Directory.Exists(Path.Combine(SavesPath, "world", "regions"))) return;
+
+        BinaryFormatter bf = new BinaryFormatter();
+        FileStream file = File.Open(Path.Combine(SavesPath, "world", "world.dat"), FileMode.Open);
+        serializedWorld = (SerializedWorld)bf.Deserialize(file);
+        file.Close();
+
+        FindObjectOfType<GeneratorCore>().Seed = serializedWorld.Seed;
+
+        foreach(string f in Directory.GetFiles(Path.Combine(SavesPath, "world", "regions"), "reg.*.dat"))
+		{
+            string[] fc = f.Replace(Path.Combine(SavesPath, "world", "regions") + @"\", "").Replace("reg.", "").Replace(".dat", "").Split('.');
+            Vector2Int rCord = new Vector2Int(int.Parse(fc[0]), int.Parse(fc[1]));
+
+            BinaryFormatter b = new BinaryFormatter();
+            FileStream fi = File.Open(f, FileMode.Open);
+            Dictionary<SerializedCords, SerializedChunk> sc = (Dictionary<SerializedCords, SerializedChunk>)b.Deserialize(fi);
+            fi.Close();
+
+            if (!regions.ContainsKey(rCord))
+			{
+                regions[rCord] = new Region(rCord, new Dictionary<Vector2Int, SerializedChunk>());
+			}
+
+            foreach(var dkvp in sc)
+			{
+                regions[rCord].editedChunks[new Vector2Int(dkvp.Key.x, dkvp.Key.z)] = new SerializedChunk(Ionic.Zlib.DeflateStream.UncompressBuffer(dkvp.Value.ChunkData));
+            }
+        }
     }
 
     public byte[] ChunkDataToBytesArray(BlockType[,,] blocks, bool compress = true)
@@ -217,18 +265,6 @@ public struct Region
         RegionCords = rcords;
         editedChunks = edChunks;
     }
-}
-
-public struct EditedChunk
-{
-    public Vector2Int ChunkCords;
-    public BlockType[,,] ChunkBlocks;
-
-    public EditedChunk(Vector2Int ccords, BlockType[,,] chuBlocks)
-	{
-        ChunkCords = ccords;
-        ChunkBlocks = chuBlocks;
-	}
 }
 
 [Serializable]
