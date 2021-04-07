@@ -20,7 +20,7 @@ public class GeneratorChunk : MonoBehaviour
     public int ChunkX = 0;
     public int ChunkZ = 0;
 
-    public BlockType[,,] Blocks = new BlockType[0, 0, 0];
+    public byte[] Blocks = new byte[0];
 
     public void GenerateChunk(int cX, int cZ)
 	{
@@ -50,22 +50,22 @@ public class GeneratorChunk : MonoBehaviour
                         {
                             if (depthY == 0)
                             {
-                                Blocks[lx, ly, lz] = BlockType.Grass;
+                                Blocks[GetArrayCords(lx, ly, lz)] = (byte)BlockType.Grass;
                             }
                             else if (depthY < 5)
                             {
-                                Blocks[lx, ly, lz] = BlockType.Dirt;
+                                Blocks[GetArrayCords(lx, ly, lz)] = (byte)BlockType.Dirt;
                             }
                             else
                             {
-                                Blocks[lx, ly, lz] = BlockType.Stone;
+                                Blocks[GetArrayCords(lx, ly, lz)] = (byte)BlockType.Stone;
 
                                 foreach (AdvBlocksGenObj BlockGen in GeneratorCore.singleton.AdvancedBlocksGeneration)
                                 {
                                     float PerlinValue = Perlin.Noise(x * BlockGen.NoiseScale, y * BlockGen.NoiseScale, z * BlockGen.NoiseScale);
                                     if (ly <= BlockGen.MaxY && ly >= BlockGen.MinY && PerlinValue > BlockGen.Threshold)
                                     {
-                                        Blocks[lx, ly, lz] = BlockGen.blockType;
+                                        Blocks[GetArrayCords(lx, ly, lz)] = (byte)BlockGen.blockType;
                                     }
                                 }
                             }
@@ -76,11 +76,11 @@ public class GeneratorChunk : MonoBehaviour
                         {
                             if (y > 63)
                             {
-                                Blocks[lx, ly, lz] = BlockType.Air;
+                                Blocks[GetArrayCords(lx, ly, lz)] = (byte)BlockType.Air;
                             }
                             else
                             {
-                                Blocks[lx, ly, lz] = BlockType.Water;
+                                Blocks[GetArrayCords(lx, ly, lz)] = (byte)BlockType.Water;
                                 depthY++;
                             }
                         }
@@ -98,7 +98,7 @@ public class GeneratorChunk : MonoBehaviour
 
     public void SetBlockLocal(int localX, int localY, int localZ, BlockType blockToSet)
 	{
-        Blocks[localX,localY,localZ] = blockToSet;
+        Blocks[GetArrayCords(localX, localY, localZ)] = (byte)blockToSet;
 
         Task.Run(() =>
         {
@@ -108,7 +108,7 @@ public class GeneratorChunk : MonoBehaviour
     public void SetBlockGlobal(int gloablX, int gloablY, int gloablZ, BlockType blockToSet, bool Regen = true)
     {
         Vector3 local = GetLocalChunksBlockCords(gloablX, gloablY, gloablZ, ChunkX, ChunkZ);
-        Blocks[(int)local.x, (int)local.y, (int)local.z] = blockToSet;
+        Blocks[GetArrayCords((int)local.x, (int)local.y, (int)local.z)] = (byte)blockToSet;
 
         if (Regen)
 		{
@@ -119,16 +119,7 @@ public class GeneratorChunk : MonoBehaviour
         }
     }
 
-    public void GenerateChunkFromBlocks(int cX, int cZ, BlockType[,,] blocks)
-    {
-        Blocks = blocks;
-        ChunkX = cX;
-        ChunkZ = cZ;
-
-        GenerateChunkMesh();
-    }
-
-    public void RegenerateChunk(BlockType[,,] blocks = null)
+    public void RegenerateChunk(byte[] blocks = null)
 	{
         if(blocks != null) Blocks = blocks;
 
@@ -152,7 +143,7 @@ public class GeneratorChunk : MonoBehaviour
             {
                 for (int y = 0; y < GeneratorCore.singleton.ChunkSizeY; y++)
                 {
-                    BlockType currBlock = Blocks[x, y, z];
+                    BlockType currBlock = (BlockType)Blocks[GetArrayCords(x, y, z)];
 
                     if (currBlock != BlockType.Air)
                     {
@@ -439,7 +430,7 @@ public class GeneratorChunk : MonoBehaviour
 	{
         for(int i = y + 1; i < GeneratorCore.singleton.ChunkSizeY; i++)
 		{
-            if (Blocks[x, i, z] != BlockType.Air) return true;
+            if (Blocks[GetArrayCords(x, i, z)] != (byte)BlockType.Air) return true;
 		}
 
         return false;
@@ -468,7 +459,7 @@ public class GeneratorChunk : MonoBehaviour
         //if (x >= GeneratorCore.singleton.ChunkSizeXZ || y >= GeneratorCore.singleton.ChunkSizeY || z >= GeneratorCore.singleton.ChunkSizeXZ) return true;
         //if (x < 0 || y < 0 || z < 0) return true;
 
-        return Blocks[x, y, z] == BlockType.Air || (currBlock != BlockType.Water && Blocks[x, y, z] == BlockType.Water);
+        return Blocks[GetArrayCords(x, y, z)] == (byte)BlockType.Air || (currBlock != BlockType.Water && Blocks[GetArrayCords(x, y, z)] == (byte)BlockType.Water);
     }
 
     public bool CheckIfRenderBlockInChunk(BlockType currBlock, int cX, int cZ, int x, int y, int z)
@@ -539,6 +530,11 @@ public class GeneratorChunk : MonoBehaviour
         z = z - (cZ * GeneratorCore.singleton.ChunkSizeXZ);
 
         return new Vector3(x, y, z);
+    }
+
+    public int GetArrayCords(int x, int y, int z)
+    {
+        return (x * GeneratorCore.singleton.ChunkSizeXZ * GeneratorCore.singleton.ChunkSizeY) + (y * GeneratorCore.singleton.ChunkSizeXZ) + z;
     }
 }
 

@@ -174,7 +174,7 @@ public class GeneratorCore : MonoBehaviour
                 mr.materials = new Material[] { TextureMaterial, WaterMaterial };
                 gc.meshCollider = chunkGb.AddComponent<MeshCollider>();
 
-                gc.Blocks = new BlockType[ChunkSizeXZ, ChunkSizeY, ChunkSizeXZ];
+                gc.Blocks = new byte[ChunkSizeXZ * ChunkSizeY * ChunkSizeXZ];
                 gc.meshFilter = chunkGb.AddComponent<MeshFilter>();
                 gc.meshRenderer = mr;
 

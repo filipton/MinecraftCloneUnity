@@ -45,28 +45,28 @@ public class SaveManager : MonoBehaviour
 		}
     }
 
-    public void SaveBlocks(int cX, int cZ, BlockType[,,] blocksToSave)
+    public void SaveBlocks(int cX, int cZ, byte[] blocksToSave)
 	{
         Vector2Int chunkC = new Vector2Int(cX, cZ);
         Vector2Int regC = GetRegion(cX, cZ);
 
         if (!regions.ContainsKey(regC)) regions[regC] = new Region(regC, new Dictionary<Vector2Int, SerializedChunk>());
 
-        regions[regC].editedChunks[chunkC] = new SerializedChunk(ChunkDataToBytesArray(blocksToSave, false));
+        regions[regC].editedChunks[chunkC] = new SerializedChunk(blocksToSave);
     }
 
-    public bool TryGetSavedBlocks(int cX, int cZ, out BlockType[,,] blocks)
+    public bool TryGetSavedBlocks(int cX, int cZ, out byte[] blocks)
 	{
         Vector2Int chunkC = new Vector2Int(cX, cZ);
         Vector2Int regC = GetRegion(cX, cZ);
 
         if (regions.ContainsKey(regC) && regions[regC].editedChunks.ContainsKey(chunkC))
 		{
-            blocks = ByteArrayToChunkData(regions[regC].editedChunks[chunkC].ChunkData, false);
+            blocks = regions[regC].editedChunks[chunkC].ChunkData;
             return true;
         }
 
-        blocks = new BlockType[GeneratorCore.singleton.ChunkSizeXZ, GeneratorCore.singleton.ChunkSizeY, GeneratorCore.singleton.ChunkSizeXZ];
+        blocks = new byte[GeneratorCore.singleton.ChunkSizeXZ * GeneratorCore.singleton.ChunkSizeY * GeneratorCore.singleton.ChunkSizeXZ];
         return false;
 	}
 
