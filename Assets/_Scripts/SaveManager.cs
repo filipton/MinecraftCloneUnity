@@ -12,14 +12,22 @@ public class SaveManager : MonoBehaviour
 {
     public static SaveManager singleton;
 
+    public string CurrentSave = "New World";
+
     [Header("SaveSystem Settings")]
     public int RegionSizeInChunks = 32;
     public string SavesPath = @"D:\Worlds";
+    public string worldPath = "";
+    public string regionsPath = "";
+
     public Dictionary<Vector2Int, Region> regions = new Dictionary<Vector2Int, Region>();
 
 
     private void Awake()
 	{
+        worldPath = Path.Combine(SavesPath, CurrentSave);
+        regionsPath = Path.Combine(SavesPath, CurrentSave, "regions");
+
         LoadWorld();
         singleton = this;
     }
@@ -113,8 +121,8 @@ public class SaveManager : MonoBehaviour
 			{
                 SerializedWorld serializedWorld = new SerializedWorld(GeneratorCore.singleton.Seed);
 
-                if (!Directory.Exists(Path.Combine(SavesPath, "world"))) Directory.CreateDirectory(Path.Combine(SavesPath, "world"));
-                if (!Directory.Exists(Path.Combine(SavesPath, "world", "regions"))) Directory.CreateDirectory(Path.Combine(SavesPath, "world", "regions"));
+                if (!Directory.Exists(worldPath)) Directory.CreateDirectory(worldPath);
+                if (!Directory.Exists(regionsPath)) Directory.CreateDirectory(regionsPath);
 
                 foreach (Region reg in regions.Values)
                 {
@@ -128,14 +136,14 @@ public class SaveManager : MonoBehaviour
                         }
 
                         BinaryFormatter bf = new BinaryFormatter();
-                        FileStream file = File.Open(Path.Combine(SavesPath, "world", "regions", $@"reg.{reg.RegionCords.x}.{reg.RegionCords.y}.dat"), FileMode.OpenOrCreate);
+                        FileStream file = File.Open(Path.Combine(regionsPath, $@"reg.{reg.RegionCords.x}.{reg.RegionCords.y}.dat"), FileMode.OpenOrCreate);
                         bf.Serialize(file, tmpDict);
                         file.Close();
                     });
                 }
 
                 BinaryFormatter bf = new BinaryFormatter();
-                FileStream file = File.Open(Path.Combine(SavesPath, "world", "world.dat"), FileMode.OpenOrCreate);
+                FileStream file = File.Open(Path.Combine(worldPath, "world.dat"), FileMode.OpenOrCreate);
                 bf.Serialize(file, serializedWorld);
                 file.Close();
             }
@@ -147,18 +155,18 @@ public class SaveManager : MonoBehaviour
 	{
         SerializedWorld serializedWorld = new SerializedWorld();
 
-        if (!Directory.Exists(Path.Combine(SavesPath, "world")) || !Directory.Exists(Path.Combine(SavesPath, "world", "regions"))) return;
+        if (!Directory.Exists(worldPath) || !Directory.Exists(regionsPath)) return;
 
         BinaryFormatter bf = new BinaryFormatter();
-        FileStream file = File.Open(Path.Combine(SavesPath, "world", "world.dat"), FileMode.Open);
+        FileStream file = File.Open(Path.Combine(worldPath, "world.dat"), FileMode.Open);
         serializedWorld = (SerializedWorld)bf.Deserialize(file);
         file.Close();
 
         FindObjectOfType<GeneratorCore>().Seed = serializedWorld.Seed;
 
-        foreach(string f in Directory.GetFiles(Path.Combine(SavesPath, "world", "regions"), "reg.*.dat"))
+        foreach(string f in Directory.GetFiles(regionsPath, "reg.*.dat"))
 		{
-            string[] fc = f.Replace(Path.Combine(SavesPath, "world", "regions") + @"\", "").Replace("reg.", "").Replace(".dat", "").Split('.');
+            string[] fc = f.Replace(regionsPath + @"\", "").Replace("reg.", "").Replace(".dat", "").Split('.');
             Vector2Int rCord = new Vector2Int(int.Parse(fc[0]), int.Parse(fc[1]));
 
             BinaryFormatter b = new BinaryFormatter();
