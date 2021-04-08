@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
@@ -132,7 +133,7 @@ public class SaveManager : MonoBehaviour
 
                         foreach (var chunkKVP in reg.editedChunks)
                         {
-                            tmpDict[new SerializedCords(chunkKVP.Key)] = new SerializedChunk(Ionic.Zlib.DeflateStream.CompressBuffer(chunkKVP.Value.ChunkData));
+                            tmpDict[new SerializedCords(chunkKVP.Key)] = new SerializedChunk(Compress(chunkKVP.Value.ChunkData));
                         }
 
                         BinaryFormatter bf = new BinaryFormatter();
@@ -181,7 +182,7 @@ public class SaveManager : MonoBehaviour
 
             foreach(var dkvp in sc)
 			{
-                regions[rCord].editedChunks[new Vector2Int(dkvp.Key.x, dkvp.Key.z)] = new SerializedChunk(Ionic.Zlib.DeflateStream.UncompressBuffer(dkvp.Value.ChunkData));
+                regions[rCord].editedChunks[new Vector2Int(dkvp.Key.x, dkvp.Key.z)] = new SerializedChunk(Decompress(dkvp.Value.ChunkData));
             }
         }
     }
@@ -206,7 +207,7 @@ public class SaveManager : MonoBehaviour
 
 		if (compress)
 		{
-            return Ionic.Zlib.DeflateStream.CompressBuffer(tmp.ToArray());
+            return Compress(tmp.ToArray());
         }
 		else
 		{
@@ -219,7 +220,7 @@ public class SaveManager : MonoBehaviour
         byte[] data = new byte[0];
 		if (compresed)
 		{
-            data = Ionic.Zlib.DeflateStream.UncompressBuffer(compresedData);
+            data = Decompress(compresedData);
         }
 		else
 		{
@@ -250,6 +251,27 @@ public class SaveManager : MonoBehaviour
         }
 
         return tmp;
+    }
+
+    public static byte[] Compress(byte[] data)
+    {
+        MemoryStream output = new MemoryStream();
+        using (DeflateStream dstream = new DeflateStream(output, System.IO.Compression.CompressionLevel.Fastest))
+        {
+            dstream.Write(data, 0, data.Length);
+        }
+        return output.ToArray();
+    }
+
+    public static byte[] Decompress(byte[] data)
+    {
+        MemoryStream input = new MemoryStream(data);
+        MemoryStream output = new MemoryStream();
+        using (DeflateStream dstream = new DeflateStream(input, CompressionMode.Decompress))
+        {
+            dstream.CopyTo(output);
+        }
+        return output.ToArray();
     }
 
     public Vector2Int GetRegion(int cX, int cZ)

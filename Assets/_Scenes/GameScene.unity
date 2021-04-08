@@ -495,7 +495,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ee107ad7cb4cc4546b442da96a2a5843, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  CurrentSave: comp-test2
+  CurrentSave: comp-test
   RegionSizeInChunks: 32
   SavesPath: D:\Worlds
   worldPath: 
@@ -565,7 +565,7 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   GenCurve: []
-  RenderDistance: 8
+  RenderDistance: 32
   ChunkSizeXZ: 16
   ChunkSizeY: 256
   ChunkLoadingIntervalMs: 20
