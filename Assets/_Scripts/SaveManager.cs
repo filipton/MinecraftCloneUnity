@@ -26,6 +26,9 @@ public class SaveManager : MonoBehaviour
 
     private void Awake()
 	{
+        SavesPath = Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "MCClone", "Worlds");
+        Directory.CreateDirectory(SavesPath);
+
         worldPath = Path.Combine(SavesPath, CurrentSave);
         regionsPath = Path.Combine(SavesPath, CurrentSave, "regions");
 

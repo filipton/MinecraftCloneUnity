@@ -52,9 +52,9 @@ public class GeneratorCore : MonoBehaviour
 		{
             Seed = UnityEngine.Random.Range(-320000000, 320000000);
 		}
-	}
+    }
 
-	private void Start()
+    private void Start()
 	{
         Shader.SetGlobalFloat("minGlobalLightLevel", 0f);
         Shader.SetGlobalFloat("maxGlobalLightLevel", 1f);
