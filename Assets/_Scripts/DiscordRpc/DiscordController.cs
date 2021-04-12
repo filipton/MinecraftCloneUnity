@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 
 [System.Serializable]
 public class DiscordJoinEvent : UnityEngine.Events.UnityEvent<string> { }
@@ -13,32 +14,15 @@ public class DiscordController : MonoBehaviour
 {
     public DiscordRpc.RichPresence presence = new DiscordRpc.RichPresence();
     public string applicationId;
-    public string optionalSteamId;
-    public int clickCounter;
     public DiscordRpc.DiscordUser joinRequest;
     public UnityEngine.Events.UnityEvent onConnect;
     public UnityEngine.Events.UnityEvent onDisconnect;
     public UnityEngine.Events.UnityEvent hasResponded;
     public DiscordJoinEvent onJoin;
-    public DiscordJoinEvent onSpectate;
     public DiscordJoinRequestEvent onJoinRequest;
+    public static DiscordRpc.RichPresence RichPresence;
 
     DiscordRpc.EventHandlers handlers;
-
-    public void OnClick()
-    {
-        Debug.Log("Discord: on click!");
-        clickCounter++;
-
-        presence.details = string.Format("Button clicked {0} times", clickCounter);
-        presence.joinSecret = "aSecret";
-        presence.partyId = "aPartyId";
-        presence.partySize = 1;
-        presence.partyMax = 3;
-        presence.partyPrivacy = DiscordRpc.PartyPrivacy.Public;
-
-        DiscordRpc.UpdatePresence(presence);
-    }
 
     public void RequestRespondYes()
     {
@@ -77,12 +61,6 @@ public class DiscordController : MonoBehaviour
         onJoin.Invoke(secret);
     }
 
-    public void SpectateCallback(string secret)
-    {
-        Debug.Log(string.Format("Discord: spectate ({0})", secret));
-        onSpectate.Invoke(secret);
-    }
-
     public void RequestCallback(ref DiscordRpc.DiscordUser request)
     {
         Debug.Log(string.Format("Discord: join request {0}#{1}: {2}", request.username, request.discriminator, request.userId));
@@ -90,13 +68,77 @@ public class DiscordController : MonoBehaviour
         onJoinRequest.Invoke(request);
     }
 
-    void Start()
+	private void Awake()
+	{
+        DontDestroyOnLoad(this);
+
+        RichPresence = new DiscordRpc.RichPresence();
+        ChangeDetails("In game");
+    }
+
+	void Start()
     {
+        DiscordRpc.UpdatePresence(RichPresence);
     }
 
     void Update()
     {
         DiscordRpc.RunCallbacks();
+    }
+
+    public static void ChangeState(string state, bool UpdatePresence = true)
+	{
+        RichPresence.state = state;
+
+        if (UpdatePresence) DiscordRpc.UpdatePresence(RichPresence);
+	}
+
+    public static void ChangeDetails(string details, bool UpdatePresence = true)
+    {
+        RichPresence.details = details;
+
+        if (UpdatePresence) DiscordRpc.UpdatePresence(RichPresence);
+    }
+
+    public static void ChangeLargeImage(string key, string text, bool UpdatePresence = true)
+    {
+        RichPresence.largeImageKey = key;
+        RichPresence.largeImageText = text;
+
+        if (UpdatePresence) DiscordRpc.UpdatePresence(RichPresence);
+    }
+
+    public static void ChangeSmallImage(string key, string text, bool UpdatePresence = true)
+    {
+        RichPresence.smallImageKey = key;
+        RichPresence.smallImageText = text;
+
+        if (UpdatePresence) DiscordRpc.UpdatePresence(RichPresence);
+    }
+
+    public static void ChangeParty(int inParty, int maxParty, bool UpdatePresence = true)
+    {
+        RichPresence.partySize = inParty;
+        RichPresence.partyMax = maxParty;
+
+        if (UpdatePresence) DiscordRpc.UpdatePresence(RichPresence);
+    }
+
+    public static void ChangeSecrets(string matchSecret, string joinSecret, string partyId, bool UpdatePresence = true)
+    {
+        RichPresence.matchSecret = matchSecret;
+        RichPresence.joinSecret = joinSecret;
+        RichPresence.partyId= partyId;
+
+        if (UpdatePresence) DiscordRpc.UpdatePresence(RichPresence);
+    }
+
+    public static void ChangeTimeStamps(long startTimeout, long endTimeout, bool UpdatePresence = true)
+    {
+        RichPresence.startTimestamp = startTimeout;
+        RichPresence.endTimestamp = endTimeout;
+
+        if (UpdatePresence) DiscordRpc.UpdatePresence(RichPresence);
     }
 
     void OnEnable()
@@ -107,12 +149,11 @@ public class DiscordController : MonoBehaviour
         handlers.disconnectedCallback += DisconnectedCallback;
         handlers.errorCallback += ErrorCallback;
         handlers.joinCallback += JoinCallback;
-        handlers.spectateCallback += SpectateCallback;
         handlers.requestCallback += RequestCallback;
-        DiscordRpc.Initialize(applicationId, ref handlers, true, optionalSteamId);
+        DiscordRpc.Initialize(applicationId, ref handlers, true, "");
     }
 
-    void OnDisable()
+    void OnApplicationQuit()
     {
         Debug.Log("Discord: shutdown");
         DiscordRpc.Shutdown();

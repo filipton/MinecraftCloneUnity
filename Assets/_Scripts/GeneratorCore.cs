@@ -52,6 +52,8 @@ public class GeneratorCore : MonoBehaviour
 		{
             Seed = UnityEngine.Random.Range(-320000000, 320000000);
 		}
+
+        DiscordController.ChangeDetails("Playing Singleplayer");
     }
 
     private void Start()
