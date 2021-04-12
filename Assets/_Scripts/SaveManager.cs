@@ -17,6 +17,7 @@ public class SaveManager : MonoBehaviour
 
     [Header("SaveSystem Settings")]
     public int RegionSizeInChunks = 32;
+    public double Seed;
     public string SavesPath = @"D:\Worlds";
     public string worldPath = "";
     public string regionsPath = "";
@@ -26,13 +27,12 @@ public class SaveManager : MonoBehaviour
 
     private void Awake()
 	{
-        SavesPath = Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "MCClone", "Worlds");
+        DontDestroyOnLoad(this);
+
+        SavesPath = Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "My Games", "MCClone", "Worlds");
         Directory.CreateDirectory(SavesPath);
 
-        worldPath = Path.Combine(SavesPath, CurrentSave);
-        regionsPath = Path.Combine(SavesPath, CurrentSave, "regions");
-
-        LoadWorld();
+        //LoadWorld();
         singleton = this;
     }
 
@@ -157,16 +157,17 @@ public class SaveManager : MonoBehaviour
 
     public void LoadWorld()
 	{
-        SerializedWorld serializedWorld = new SerializedWorld();
+        worldPath = Path.Combine(SavesPath, CurrentSave);
+        regionsPath = Path.Combine(SavesPath, CurrentSave, "regions");
 
         if (!Directory.Exists(worldPath) || !Directory.Exists(regionsPath)) return;
 
         BinaryFormatter bf = new BinaryFormatter();
         FileStream file = File.Open(Path.Combine(worldPath, "world.dat"), FileMode.Open);
-        serializedWorld = (SerializedWorld)bf.Deserialize(file);
+        SerializedWorld serializedWorld = (SerializedWorld)bf.Deserialize(file);
         file.Close();
 
-        FindObjectOfType<GeneratorCore>().Seed = serializedWorld.Seed;
+        Seed = serializedWorld.Seed;
 
         foreach(string f in Directory.GetFiles(regionsPath, "reg.*.dat"))
 		{

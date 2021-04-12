@@ -226,7 +226,6 @@ GameObject:
   m_Component:
   - component: {fileID: 734620686}
   - component: {fileID: 734620685}
-  - component: {fileID: 734620684}
   m_Layer: 0
   m_Name: Generator
   m_TagString: Untagged
@@ -234,23 +233,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &734620684
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 734620683}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: ee107ad7cb4cc4546b442da96a2a5843, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  CurrentSave: world
-  RegionSizeInChunks: 32
-  SavesPath: 
-  worldPath: 
-  regionsPath: 
 --- !u!114 &734620685
 MonoBehaviour:
   m_ObjectHideFlags: 0

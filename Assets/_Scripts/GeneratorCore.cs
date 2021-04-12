@@ -45,6 +45,8 @@ public class GeneratorCore : MonoBehaviour
 
     private void Awake()
 	{
+        Seed = FindObjectOfType<SaveManager>().Seed;
+
         GenCurve = GeneratorCurve.GenerateCurveArray(ChunkSizeY);
 
         singleton = this;
@@ -54,6 +56,7 @@ public class GeneratorCore : MonoBehaviour
 		}
 
         DiscordController.ChangeDetails("Playing Singleplayer");
+        DiscordController.ChangeState($"DEBUG: W:{SaveManager.singleton.CurrentSave},S:{Seed}");
     }
 
     private void Start()
