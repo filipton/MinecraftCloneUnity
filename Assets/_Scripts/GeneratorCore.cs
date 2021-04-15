@@ -170,26 +170,29 @@ public class GeneratorCore : MonoBehaviour
                 int x = sx;
                 int z = sy;
 
-                GameObject chunkGb = new GameObject();
-                chunkGb.layer = 6;
-
-                GeneratorChunk gc = chunkGb.AddComponent<GeneratorChunk>();
-                MeshRenderer mr = chunkGb.AddComponent<MeshRenderer>();
-
-                mr.materials = new Material[] { TextureMaterial, WaterMaterial };
-                gc.meshCollider = chunkGb.AddComponent<MeshCollider>();
-
-                gc.Blocks = new byte[ChunkSizeXZ * ChunkSizeY * ChunkSizeXZ];
-                gc.meshFilter = chunkGb.AddComponent<MeshFilter>();
-                gc.meshRenderer = mr;
-
-                generatorChunks.Add(gc);
-
-                Task.Run(() =>
+                if (isInside(0, 0, RenderDistance, sx, sy))
                 {
-                    gc.GenerateChunk(x + _offset.x, z + _offset.y);
-                });
-                yield return new WaitForSeconds(0.010f);
+                    GameObject chunkGb = new GameObject();
+                    chunkGb.layer = 6;
+
+                    GeneratorChunk gc = chunkGb.AddComponent<GeneratorChunk>();
+                    MeshRenderer mr = chunkGb.AddComponent<MeshRenderer>();
+
+                    mr.materials = new Material[] { TextureMaterial, WaterMaterial };
+                    gc.meshCollider = chunkGb.AddComponent<MeshCollider>();
+
+                    gc.Blocks = new byte[ChunkSizeXZ * ChunkSizeY * ChunkSizeXZ];
+                    gc.meshFilter = chunkGb.AddComponent<MeshFilter>();
+                    gc.meshRenderer = mr;
+
+                    generatorChunks.Add(gc);
+
+                    Task.Run(() =>
+                    {
+                        gc.GenerateChunk(x + _offset.x, z + _offset.y);
+                    });
+                    yield return new WaitForSeconds(0.010f);
+                }
             }
             if ((sx == sy) || ((sx < 0) && (sx == -sy)) || ((sx > 0) && (sx == 1 - sy)))
             {
@@ -200,6 +203,19 @@ public class GeneratorCore : MonoBehaviour
             sx += dx;
             sy += dy;
         }
+    }
+
+    static bool isInside(int circle_x, int circle_y,
+                              int rad, int x, int y)
+    {
+        // Compare radius of circle with
+        // distance of its center from
+        // given point
+        if ((x - circle_x) * (x - circle_x) +
+            (y - circle_y) * (y - circle_y) <= rad * rad)
+            return true;
+        else
+            return false;
     }
 
     public void RegenrateChunks()
@@ -217,7 +233,7 @@ public class GeneratorCore : MonoBehaviour
 
             for (int i = 0; i < generatorChunks.Count; i++)
             {
-                if (Math.Abs(generatorChunks[i].ChunkX - _offset.x) > RenderDistance || Math.Abs(generatorChunks[i].ChunkZ - _offset.y) > RenderDistance)
+                if (!isInside(0, 0, RenderDistance, generatorChunks[i].ChunkX - _offset.x, generatorChunks[i].ChunkZ - _offset.y))
                 {
                     ChunksToRegenerate.Enqueue(generatorChunks[i]);
                 }
@@ -237,16 +253,19 @@ public class GeneratorCore : MonoBehaviour
                     int x = sx + _offset.x;
                     int z = sy + _offset.y;
 
-                    if (generatorChunks.FindIndex(f => f.ChunkX == x && f.ChunkZ == z) == -1 && ChunksToRegenerate.Count > 0)
+                    if(isInside(0, 0, RenderDistance, sx, sy))
                     {
-                        Task.Run(() =>
+                        if (generatorChunks.FindIndex(f => f.ChunkX == x && f.ChunkZ == z) == -1 && ChunksToRegenerate.Count > 0)
                         {
-                            GeneratorChunk gc = ChunksToRegenerate.Dequeue();
+                            Task.Run(() =>
+                            {
+                                GeneratorChunk gc = ChunksToRegenerate.Dequeue();
 
-                            gc.GenerateChunk(x, z);
-                        });
+                                gc.GenerateChunk(x, z);
+                            });
 
-                        Thread.Sleep(ChunkLoadingIntervalMs);
+                            Thread.Sleep(ChunkLoadingIntervalMs);
+                        }
                     }
                 }
                 if ((sx == sy) || ((sx < 0) && (sx == -sy)) || ((sx > 0) && (sx == 1 - sy)))
