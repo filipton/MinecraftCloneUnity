@@ -36,7 +36,9 @@ public class DebugUI : MonoBehaviour
             LUIText.text = 
                 $"DEBUG: \n" +
                 $"{FPS} FPS, {MS.ToString("0.0ms")}\n" +
-                $"SEED: {(GeneratorCore.singleton != null ? GeneratorCore.singleton.Seed.ToString() : "NULL")}";
+                $"SEED: {(GeneratorCore.singleton != null ? GeneratorCore.singleton.Seed.ToString() : "NULL")}\n" +
+                $"ACTIVE CHUNKS: {(GeneratorCore.singleton != null ? GeneratorCore.singleton.generatorChunks.Count.ToString() : "NULL")}\n" +
+                $"RENDER DISTANCE: {(GeneratorCore.singleton != null ? GeneratorCore.singleton.RenderDistance.ToString() : "NULL")}";
 
             RUIText.text =
                 $"INFO: \n" +

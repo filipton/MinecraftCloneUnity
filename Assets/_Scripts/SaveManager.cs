@@ -6,6 +6,7 @@ using System.IO.Compression;
 using System.Linq;
 using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using UnityEngine;
 
@@ -27,6 +28,7 @@ public class SaveManager : MonoBehaviour
 
     private void Awake()
 	{
+        Application.wantsToQuit += ApplicationWantsToQuit;
         DontDestroyOnLoad(this);
 
         SavesPath = Path.Combine(System.Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "My Games", "MCClone", "Worlds");
@@ -34,11 +36,21 @@ public class SaveManager : MonoBehaviour
 
         //LoadWorld();
         singleton = this;
+
     }
 
 	void Start()
     {
+        //GetAllWorlds();
         //File.WriteAllBytes(@"D:\test.txt", ChunkDataToBytesArray(b));
+    }
+
+    bool ApplicationWantsToQuit()
+    {
+        print(Time.time);
+        SaveWorld(true);
+
+        return false;
     }
 
     void Update()
@@ -112,7 +124,7 @@ public class SaveManager : MonoBehaviour
         return false;
     }
 
-    public void SaveWorld()
+    public void SaveWorld(bool QuitAfterSave = false)
 	{
         //BinaryFormatter bf = new BinaryFormatter();
         //FileStream file = File.Open(@"D:\save.dat", FileMode.Open);
@@ -121,12 +133,19 @@ public class SaveManager : MonoBehaviour
 
         Task.Run(() =>
         {
-			try
-			{
+            try
+            {
                 SerializedWorld serializedWorld = new SerializedWorld(GeneratorCore.singleton.Seed);
 
                 if (!Directory.Exists(worldPath)) Directory.CreateDirectory(worldPath);
                 if (!Directory.Exists(regionsPath)) Directory.CreateDirectory(regionsPath);
+
+                int curr = 0;
+
+                BinaryFormatter bf = new BinaryFormatter();
+                FileStream file = File.Open(Path.Combine(worldPath, "world.dat"), FileMode.OpenOrCreate);
+                bf.Serialize(file, serializedWorld);
+                file.Close();
 
                 foreach (Region reg in regions.Values)
                 {
@@ -143,15 +162,16 @@ public class SaveManager : MonoBehaviour
                         FileStream file = File.Open(Path.Combine(regionsPath, $@"reg.{reg.RegionCords.x}.{reg.RegionCords.y}.dat"), FileMode.OpenOrCreate);
                         bf.Serialize(file, tmpDict);
                         file.Close();
+                        curr++;
+
+                        if(curr == regions.Values.Count && QuitAfterSave)
+						{
+                            Application.Quit();
+						}
                     });
                 }
-
-                BinaryFormatter bf = new BinaryFormatter();
-                FileStream file = File.Open(Path.Combine(worldPath, "world.dat"), FileMode.OpenOrCreate);
-                bf.Serialize(file, serializedWorld);
-                file.Close();
             }
-            catch(Exception e) { Debug.Log(e); }
+            catch (Exception e) { Debug.Log(e); }
         });
     }
 

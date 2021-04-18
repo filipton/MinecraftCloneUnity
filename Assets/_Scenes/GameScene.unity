@@ -298,7 +298,7 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   GenCurve: []
-  RenderDistance: 12
+  RenderDistance: 32
   ChunkSizeXZ: 16
   ChunkSizeY: 256
   ChunkLoadingIntervalMs: 15

@@ -82,9 +82,21 @@ public class GeneratorCore : MonoBehaviour
 
             RegenrateChunks();
         }
+
+
+        if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.Equals))
+        {
+            RenderDistance++;
+            ChangeRenderDistance();
+        }
+        else if (Input.GetKey(KeyCode.LeftControl) && Input.GetKeyDown(KeyCode.Minus))
+        {
+            RenderDistance--;
+            ChangeRenderDistance();
+        }
     }
 
-    public static Vector2Int GetChunkCords(float x, float z)
+	public static Vector2Int GetChunkCords(float x, float z)
 	{
         return new Vector2Int(Mathf.FloorToInt((x + 0.5f) / singleton.ChunkSizeXZ), Mathf.FloorToInt((z + 0.5f) / singleton.ChunkSizeXZ));
     }
@@ -167,10 +179,10 @@ public class GeneratorCore : MonoBehaviour
         {
             if ((-spiralLength / 2 <= sx) && (sx <= spiralLength / 2) && (-spiralLength / 2 <= sy) && (sy <= spiralLength / 2))
             {
-                int x = sx;
-                int z = sy;
+                int x = sx + _offset.x;
+                int z = sy + _offset.y;
 
-                if (isInside(0, 0, RenderDistance, sx, sy))
+                if (isInside(0, 0, RenderDistance, sx, sy) && generatorChunks.FindIndex(d => d.ChunkX == x && d.ChunkZ == z) == -1)
                 {
                     GameObject chunkGb = new GameObject();
                     chunkGb.layer = 6;
@@ -189,7 +201,7 @@ public class GeneratorCore : MonoBehaviour
 
                     Task.Run(() =>
                     {
-                        gc.GenerateChunk(x + _offset.x, z + _offset.y);
+                        gc.GenerateChunk(x, z);
                     });
                     yield return new WaitForSeconds(0.010f);
                 }
@@ -203,6 +215,22 @@ public class GeneratorCore : MonoBehaviour
             sx += dx;
             sy += dy;
         }
+    }
+
+    public void ChangeRenderDistance()
+	{
+        //CHANGING RENDER DISTANCE TO LOWER VALUE
+        foreach(GeneratorChunk gc in generatorChunks.ToArray())
+		{
+            if (!isInside(0, 0, RenderDistance, gc.ChunkX - _offset.x, gc.ChunkZ - _offset.y))
+            {
+                generatorChunks.Remove(gc);
+                Destroy(gc.gameObject);
+            }
+        }
+
+        //CHANGING RENDER DISTANCE TO GREATER VALUE
+        StartCoroutine(GenerateWorld());
     }
 
     static bool isInside(int circle_x, int circle_y,
