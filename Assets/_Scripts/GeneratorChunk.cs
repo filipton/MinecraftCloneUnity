@@ -13,8 +13,10 @@ using UnityEngine;
 public class GeneratorChunk : MonoBehaviour
 {
     public MeshFilter meshFilter;
-    public MeshRenderer meshRenderer;
     public MeshCollider meshCollider;
+
+    public MeshFilter waterMeshFilter;
+    public MeshCollider waterMeshCollider;
 
     public int ChunkX = 0;
     public int ChunkZ = 0;
@@ -149,9 +151,13 @@ public class GeneratorChunk : MonoBehaviour
 	{
         List<Vector3> vertices = new List<Vector3>();
         List<int> triangles = new List<int>();
-        List<int> Wtriangles = new List<int>();
         List<Vector2> uvs = new List<Vector2>();
         List<Color> colors = new List<Color>();
+
+        List<Vector3> Wvertices = new List<Vector3>();
+        List<int> Wtriangles = new List<int>();
+        List<Vector2> Wuvs = new List<Vector2>();
+        List<Color> Wcolors = new List<Color>();
 
         Vector2 atlasCoords;
         float grid = 1f / GeneratorCore.singleton.atlasSize;
@@ -175,29 +181,45 @@ public class GeneratorChunk : MonoBehaviour
                         //X+
                         if (CheckIfFaceVisible(currBlock, x + 1, y, z))
                         {
-                            vertices.Add(new Vector3(x + .5f, y - .5f, z - .5f));
-                            vertices.Add(new Vector3(x + .5f, y + .5f, z - .5f));
-                            vertices.Add(new Vector3(x + .5f, y + .5f, z + .5f));
-                            vertices.Add(new Vector3(x + .5f, y - .5f, z + .5f));
-
-                            atlasCoords = Atlas.Cords[(int)currBlock - 1, 0];
-                            uvs.Add(new Vector2(atlasCoords.x * grid, atlasCoords.y * grid));
-                            uvs.Add(new Vector2(atlasCoords.x * grid, (atlasCoords.y + 1) * grid));
-                            uvs.Add(new Vector2((atlasCoords.x + 1) * grid, (atlasCoords.y + 1) * grid));
-                            uvs.Add(new Vector2((atlasCoords.x + 1) * grid, atlasCoords.y * grid));
-
                             if(currBlock == BlockType.Water)
 							{
-                                Wtriangles.Add(vertices.Count - 4);
-                                Wtriangles.Add(vertices.Count - 3);
-                                Wtriangles.Add(vertices.Count - 1);
-                                
-                                Wtriangles.Add(vertices.Count - 3);
-                                Wtriangles.Add(vertices.Count - 2);
-                                Wtriangles.Add(vertices.Count - 1);
+                                Wvertices.Add(new Vector3(x + .5f, y - .5f, z - .5f));
+                                Wvertices.Add(new Vector3(x + .5f, y + .5f, z - .5f));
+                                Wvertices.Add(new Vector3(x + .5f, y + .5f, z + .5f));
+                                Wvertices.Add(new Vector3(x + .5f, y - .5f, z + .5f));
+
+                                atlasCoords = new Vector2(0, 0);
+                                Wuvs.Add(new Vector2(atlasCoords.x * grid, atlasCoords.y * grid));
+                                Wuvs.Add(new Vector2(atlasCoords.x * grid, (atlasCoords.y + 1) * grid));
+                                Wuvs.Add(new Vector2((atlasCoords.x + 1) * grid, (atlasCoords.y + 1) * grid));
+                                Wuvs.Add(new Vector2((atlasCoords.x + 1) * grid, atlasCoords.y * grid));
+
+                                Wtriangles.Add(Wvertices.Count - 4);
+                                Wtriangles.Add(Wvertices.Count - 3);
+                                Wtriangles.Add(Wvertices.Count - 1);
+
+                                Wtriangles.Add(Wvertices.Count - 3);
+                                Wtriangles.Add(Wvertices.Count - 2);
+                                Wtriangles.Add(Wvertices.Count - 1);
+
+                                Wcolors.Add(new Color(0, 0, 0, 1));
+                                Wcolors.Add(new Color(0, 0, 0, 1));
+                                Wcolors.Add(new Color(0, 0, 0, 1));
+                                Wcolors.Add(new Color(0, 0, 0, 1));
                             }
 							else
 							{
+                                vertices.Add(new Vector3(x + .5f, y - .5f, z - .5f));
+                                vertices.Add(new Vector3(x + .5f, y + .5f, z - .5f));
+                                vertices.Add(new Vector3(x + .5f, y + .5f, z + .5f));
+                                vertices.Add(new Vector3(x + .5f, y - .5f, z + .5f));
+
+                                atlasCoords = Atlas.Cords[(int)currBlock - 1, 0];
+                                uvs.Add(new Vector2(atlasCoords.x * grid, atlasCoords.y * grid));
+                                uvs.Add(new Vector2(atlasCoords.x * grid, (atlasCoords.y + 1) * grid));
+                                uvs.Add(new Vector2((atlasCoords.x + 1) * grid, (atlasCoords.y + 1) * grid));
+                                uvs.Add(new Vector2((atlasCoords.x + 1) * grid, atlasCoords.y * grid));
+
                                 triangles.Add(vertices.Count - 4);
                                 triangles.Add(vertices.Count - 3);
                                 triangles.Add(vertices.Count - 1);
@@ -205,40 +227,56 @@ public class GeneratorChunk : MonoBehaviour
                                 triangles.Add(vertices.Count - 3);
                                 triangles.Add(vertices.Count - 2);
                                 triangles.Add(vertices.Count - 1);
-                            }
 
-                            colors.Add(new Color(0, 0, 0, 1));
-                            colors.Add(new Color(0, 0, 0, 1));
-                            colors.Add(new Color(0, 0, 0, 1));
-                            colors.Add(new Color(0, 0, 0, 1));
+                                colors.Add(new Color(0, 0, 0, 1));
+                                colors.Add(new Color(0, 0, 0, 1));
+                                colors.Add(new Color(0, 0, 0, 1));
+                                colors.Add(new Color(0, 0, 0, 1));
+                            }
                         }
 
                         //X-
                         if (CheckIfFaceVisible(currBlock, x - 1, y, z))
                         {
-                            vertices.Add(new Vector3(x - .5f, y - .5f, z - .5f));
-                            vertices.Add(new Vector3(x - .5f, y + .5f, z - .5f));
-                            vertices.Add(new Vector3(x - .5f, y + .5f, z + .5f));
-                            vertices.Add(new Vector3(x - .5f, y - .5f, z + .5f));
-
-                            atlasCoords = Atlas.Cords[(int)currBlock - 1, 1];
-                            uvs.Add(new Vector2(atlasCoords.x * grid, atlasCoords.y * grid));
-                            uvs.Add(new Vector2(atlasCoords.x * grid, (atlasCoords.y + 1) * grid));
-                            uvs.Add(new Vector2((atlasCoords.x + 1) * grid, (atlasCoords.y + 1) * grid));
-                            uvs.Add(new Vector2((atlasCoords.x + 1) * grid, atlasCoords.y * grid));
-
                             if (currBlock == BlockType.Water)
                             {
-                                Wtriangles.Add(vertices.Count - 4);
-                                Wtriangles.Add(vertices.Count - 1);
-                                Wtriangles.Add(vertices.Count - 3);
+                                Wvertices.Add(new Vector3(x - .5f, y - .5f, z - .5f));
+                                Wvertices.Add(new Vector3(x - .5f, y + .5f, z - .5f));
+                                Wvertices.Add(new Vector3(x - .5f, y + .5f, z + .5f));
+                                Wvertices.Add(new Vector3(x - .5f, y - .5f, z + .5f));
+
+                                atlasCoords = new Vector2(0, 0);
+                                Wuvs.Add(new Vector2(atlasCoords.x * grid, atlasCoords.y * grid));
+                                Wuvs.Add(new Vector2(atlasCoords.x * grid, (atlasCoords.y + 1) * grid));
+                                Wuvs.Add(new Vector2((atlasCoords.x + 1) * grid, (atlasCoords.y + 1) * grid));
+                                Wuvs.Add(new Vector2((atlasCoords.x + 1) * grid, atlasCoords.y * grid));
+
+                                Wtriangles.Add(Wvertices.Count - 4);
+                                Wtriangles.Add(Wvertices.Count - 1);
+                                Wtriangles.Add(Wvertices.Count - 3);
                                 
-                                Wtriangles.Add(vertices.Count - 3);
-                                Wtriangles.Add(vertices.Count - 1);
-                                Wtriangles.Add(vertices.Count - 2);
+                                Wtriangles.Add(Wvertices.Count - 3);
+                                Wtriangles.Add(Wvertices.Count - 1);
+                                Wtriangles.Add(Wvertices.Count - 2);
+                                
+                                Wcolors.Add(new Color(0, 0, 0, 1));
+                                Wcolors.Add(new Color(0, 0, 0, 1));
+                                Wcolors.Add(new Color(0, 0, 0, 1));
+                                Wcolors.Add(new Color(0, 0, 0, 1));
                             }
                             else
                             {
+                                vertices.Add(new Vector3(x - .5f, y - .5f, z - .5f));
+                                vertices.Add(new Vector3(x - .5f, y + .5f, z - .5f));
+                                vertices.Add(new Vector3(x - .5f, y + .5f, z + .5f));
+                                vertices.Add(new Vector3(x - .5f, y - .5f, z + .5f));
+
+                                atlasCoords = Atlas.Cords[(int)currBlock - 1, 1];
+                                uvs.Add(new Vector2(atlasCoords.x * grid, atlasCoords.y * grid));
+                                uvs.Add(new Vector2(atlasCoords.x * grid, (atlasCoords.y + 1) * grid));
+                                uvs.Add(new Vector2((atlasCoords.x + 1) * grid, (atlasCoords.y + 1) * grid));
+                                uvs.Add(new Vector2((atlasCoords.x + 1) * grid, atlasCoords.y * grid));
+
                                 triangles.Add(vertices.Count - 4);
                                 triangles.Add(vertices.Count - 1);
                                 triangles.Add(vertices.Count - 3);
@@ -246,40 +284,56 @@ public class GeneratorChunk : MonoBehaviour
                                 triangles.Add(vertices.Count - 3);
                                 triangles.Add(vertices.Count - 1);
                                 triangles.Add(vertices.Count - 2);
-                            }
 
-                            colors.Add(new Color(0, 0, 0, 1));
-                            colors.Add(new Color(0, 0, 0, 1));
-                            colors.Add(new Color(0, 0, 0, 1));
-                            colors.Add(new Color(0, 0, 0, 1));
+                                colors.Add(new Color(0, 0, 0, 1));
+                                colors.Add(new Color(0, 0, 0, 1));
+                                colors.Add(new Color(0, 0, 0, 1));
+                                colors.Add(new Color(0, 0, 0, 1));
+                            }
                         }
 
                         //Y+
                         if (CheckIfFaceVisible(currBlock, x, y + 1, z))
                         {
-                            vertices.Add(new Vector3(x + .5f, y + .5f, z - .5f));
-                            vertices.Add(new Vector3(x - .5f, y + .5f, z - .5f));
-                            vertices.Add(new Vector3(x - .5f, y + .5f, z + .5f));
-                            vertices.Add(new Vector3(x + .5f, y + .5f, z + .5f));
-
-                            atlasCoords = Atlas.Cords[(int)currBlock - 1, 2];
-                            uvs.Add(new Vector2(atlasCoords.x * grid, atlasCoords.y * grid));
-                            uvs.Add(new Vector2(atlasCoords.x * grid, (atlasCoords.y + 1) * grid));
-                            uvs.Add(new Vector2((atlasCoords.x + 1) * grid, (atlasCoords.y + 1) * grid));
-                            uvs.Add(new Vector2((atlasCoords.x + 1) * grid, atlasCoords.y * grid));
-
                             if (currBlock == BlockType.Water)
                             {
-                                Wtriangles.Add(vertices.Count - 4);
-                                Wtriangles.Add(vertices.Count - 3);
-                                Wtriangles.Add(vertices.Count - 1);
+                                Wvertices.Add(new Vector3(x + .5f, y + .5f, z - .5f));
+                                Wvertices.Add(new Vector3(x - .5f, y + .5f, z - .5f));
+                                Wvertices.Add(new Vector3(x - .5f, y + .5f, z + .5f));
+                                Wvertices.Add(new Vector3(x + .5f, y + .5f, z + .5f));
 
-                                Wtriangles.Add(vertices.Count - 3);
-                                Wtriangles.Add(vertices.Count - 2);
-                                Wtriangles.Add(vertices.Count - 1);
+                                atlasCoords = new Vector2(0, 0);
+                                Wuvs.Add(new Vector2(atlasCoords.x * grid, atlasCoords.y * grid));
+                                Wuvs.Add(new Vector2(atlasCoords.x * grid, (atlasCoords.y + 1) * grid));
+                                Wuvs.Add(new Vector2((atlasCoords.x + 1) * grid, (atlasCoords.y + 1) * grid));
+                                Wuvs.Add(new Vector2((atlasCoords.x + 1) * grid, atlasCoords.y * grid));
+
+                                Wtriangles.Add(Wvertices.Count - 4);
+                                Wtriangles.Add(Wvertices.Count - 3);
+                                Wtriangles.Add(Wvertices.Count - 1);
+                                
+                                Wtriangles.Add(Wvertices.Count - 3);
+                                Wtriangles.Add(Wvertices.Count - 2);
+                                Wtriangles.Add(Wvertices.Count - 1);
+                                
+                                Wcolors.Add(new Color(0, 0, 0, lightLevel));
+                                Wcolors.Add(new Color(0, 0, 0, lightLevel));
+                                Wcolors.Add(new Color(0, 0, 0, lightLevel));
+                                Wcolors.Add(new Color(0, 0, 0, lightLevel));
                             }
                             else
                             {
+                                vertices.Add(new Vector3(x + .5f, y + .5f, z - .5f));
+                                vertices.Add(new Vector3(x - .5f, y + .5f, z - .5f));
+                                vertices.Add(new Vector3(x - .5f, y + .5f, z + .5f));
+                                vertices.Add(new Vector3(x + .5f, y + .5f, z + .5f));
+
+                                atlasCoords = Atlas.Cords[(int)currBlock - 1, 2];
+                                uvs.Add(new Vector2(atlasCoords.x * grid, atlasCoords.y * grid));
+                                uvs.Add(new Vector2(atlasCoords.x * grid, (atlasCoords.y + 1) * grid));
+                                uvs.Add(new Vector2((atlasCoords.x + 1) * grid, (atlasCoords.y + 1) * grid));
+                                uvs.Add(new Vector2((atlasCoords.x + 1) * grid, atlasCoords.y * grid));
+
                                 triangles.Add(vertices.Count - 4);
                                 triangles.Add(vertices.Count - 3);
                                 triangles.Add(vertices.Count - 1);
@@ -287,40 +341,56 @@ public class GeneratorChunk : MonoBehaviour
                                 triangles.Add(vertices.Count - 3);
                                 triangles.Add(vertices.Count - 2);
                                 triangles.Add(vertices.Count - 1);
-                            }
 
-                            colors.Add(new Color(0, 0, 0, lightLevel));
-                            colors.Add(new Color(0, 0, 0, lightLevel));
-                            colors.Add(new Color(0, 0, 0, lightLevel));
-                            colors.Add(new Color(0, 0, 0, lightLevel));
+                                colors.Add(new Color(0, 0, 0, lightLevel));
+                                colors.Add(new Color(0, 0, 0, lightLevel));
+                                colors.Add(new Color(0, 0, 0, lightLevel));
+                                colors.Add(new Color(0, 0, 0, lightLevel));
+                            }
                         }
 
                         //Y-
                         if (CheckIfFaceVisible(currBlock, x, y - 1, z))
                         {
-                            vertices.Add(new Vector3(x + .5f, y - .5f, z - .5f));
-                            vertices.Add(new Vector3(x - .5f, y - .5f, z - .5f));
-                            vertices.Add(new Vector3(x - .5f, y - .5f, z + .5f));
-                            vertices.Add(new Vector3(x + .5f, y - .5f, z + .5f));
-
-                            atlasCoords = Atlas.Cords[(int)currBlock - 1, 3];
-                            uvs.Add(new Vector2(atlasCoords.x * grid, atlasCoords.y * grid));
-                            uvs.Add(new Vector2(atlasCoords.x * grid, (atlasCoords.y + 1) * grid));
-                            uvs.Add(new Vector2((atlasCoords.x + 1) * grid, (atlasCoords.y + 1) * grid));
-                            uvs.Add(new Vector2((atlasCoords.x + 1) * grid, atlasCoords.y * grid));
-
                             if (currBlock == BlockType.Water)
                             {
-                                Wtriangles.Add(vertices.Count - 4);
-                                Wtriangles.Add(vertices.Count - 1);
-                                Wtriangles.Add(vertices.Count - 3);
+                                Wvertices.Add(new Vector3(x + .5f, y - .5f, z - .5f));
+                                Wvertices.Add(new Vector3(x - .5f, y - .5f, z - .5f));
+                                Wvertices.Add(new Vector3(x - .5f, y - .5f, z + .5f));
+                                Wvertices.Add(new Vector3(x + .5f, y - .5f, z + .5f));
 
-                                Wtriangles.Add(vertices.Count - 3);
-                                Wtriangles.Add(vertices.Count - 1);
-                                Wtriangles.Add(vertices.Count - 2);
+                                atlasCoords = new Vector2(0, 0);
+                                Wuvs.Add(new Vector2(atlasCoords.x * grid, atlasCoords.y * grid));
+                                Wuvs.Add(new Vector2(atlasCoords.x * grid, (atlasCoords.y + 1) * grid));
+                                Wuvs.Add(new Vector2((atlasCoords.x + 1) * grid, (atlasCoords.y + 1) * grid));
+                                Wuvs.Add(new Vector2((atlasCoords.x + 1) * grid, atlasCoords.y * grid));
+
+                                Wtriangles.Add(Wvertices.Count - 4);
+                                Wtriangles.Add(Wvertices.Count - 1);
+                                Wtriangles.Add(Wvertices.Count - 3);
+                                
+                                Wtriangles.Add(Wvertices.Count - 3);
+                                Wtriangles.Add(Wvertices.Count - 1);
+                                Wtriangles.Add(Wvertices.Count - 2);
+                                
+                                Wcolors.Add(new Color(0, 0, 0, 1));
+                                Wcolors.Add(new Color(0, 0, 0, 1));
+                                Wcolors.Add(new Color(0, 0, 0, 1));
+                                Wcolors.Add(new Color(0, 0, 0, 1));
                             }
                             else
                             {
+                                vertices.Add(new Vector3(x + .5f, y - .5f, z - .5f));
+                                vertices.Add(new Vector3(x - .5f, y - .5f, z - .5f));
+                                vertices.Add(new Vector3(x - .5f, y - .5f, z + .5f));
+                                vertices.Add(new Vector3(x + .5f, y - .5f, z + .5f));
+
+                                atlasCoords = Atlas.Cords[(int)currBlock - 1, 3];
+                                uvs.Add(new Vector2(atlasCoords.x * grid, atlasCoords.y * grid));
+                                uvs.Add(new Vector2(atlasCoords.x * grid, (atlasCoords.y + 1) * grid));
+                                uvs.Add(new Vector2((atlasCoords.x + 1) * grid, (atlasCoords.y + 1) * grid));
+                                uvs.Add(new Vector2((atlasCoords.x + 1) * grid, atlasCoords.y * grid));
+
                                 triangles.Add(vertices.Count - 4);
                                 triangles.Add(vertices.Count - 1);
                                 triangles.Add(vertices.Count - 3);
@@ -328,40 +398,56 @@ public class GeneratorChunk : MonoBehaviour
                                 triangles.Add(vertices.Count - 3);
                                 triangles.Add(vertices.Count - 1);
                                 triangles.Add(vertices.Count - 2);
-                            }
 
-                            colors.Add(new Color(0, 0, 0, 1));
-                            colors.Add(new Color(0, 0, 0, 1));
-                            colors.Add(new Color(0, 0, 0, 1));
-                            colors.Add(new Color(0, 0, 0, 1));
+                                colors.Add(new Color(0, 0, 0, 1));
+                                colors.Add(new Color(0, 0, 0, 1));
+                                colors.Add(new Color(0, 0, 0, 1));
+                                colors.Add(new Color(0, 0, 0, 1));
+                            }
                         }
 
                         //Z+
                         if (CheckIfFaceVisible(currBlock, x, y, z + 1))
                         {
-                            vertices.Add(new Vector3(x + .5f, y - .5f, z + .5f));
-                            vertices.Add(new Vector3(x + .5f, y + .5f, z + .5f));
-                            vertices.Add(new Vector3(x - .5f, y + .5f, z + .5f));
-                            vertices.Add(new Vector3(x - .5f, y - .5f, z + .5f));
-
-                            atlasCoords = Atlas.Cords[(int)currBlock - 1, 4];
-                            uvs.Add(new Vector2(atlasCoords.x * grid, atlasCoords.y * grid));
-                            uvs.Add(new Vector2(atlasCoords.x * grid, (atlasCoords.y + 1) * grid));
-                            uvs.Add(new Vector2((atlasCoords.x + 1) * grid, (atlasCoords.y + 1) * grid));
-                            uvs.Add(new Vector2((atlasCoords.x + 1) * grid, atlasCoords.y * grid));
-
                             if (currBlock == BlockType.Water)
                             {
-                                Wtriangles.Add(vertices.Count - 4);
-                                Wtriangles.Add(vertices.Count - 3);
-                                Wtriangles.Add(vertices.Count - 1);
+                                Wvertices.Add(new Vector3(x + .5f, y - .5f, z + .5f));
+                                Wvertices.Add(new Vector3(x + .5f, y + .5f, z + .5f));
+                                Wvertices.Add(new Vector3(x - .5f, y + .5f, z + .5f));
+                                Wvertices.Add(new Vector3(x - .5f, y - .5f, z + .5f));
 
-                                Wtriangles.Add(vertices.Count - 3);
-                                Wtriangles.Add(vertices.Count - 2);
-                                Wtriangles.Add(vertices.Count - 1);
+                                atlasCoords = new Vector2(0, 0);
+                                Wuvs.Add(new Vector2(atlasCoords.x * grid, atlasCoords.y * grid));
+                                Wuvs.Add(new Vector2(atlasCoords.x * grid, (atlasCoords.y + 1) * grid));
+                                Wuvs.Add(new Vector2((atlasCoords.x + 1) * grid, (atlasCoords.y + 1) * grid));
+                                Wuvs.Add(new Vector2((atlasCoords.x + 1) * grid, atlasCoords.y * grid));
+
+                                Wtriangles.Add(Wvertices.Count - 4);
+                                Wtriangles.Add(Wvertices.Count - 3);
+                                Wtriangles.Add(Wvertices.Count - 1);
+                                
+                                Wtriangles.Add(Wvertices.Count - 3);
+                                Wtriangles.Add(Wvertices.Count - 2);
+                                Wtriangles.Add(Wvertices.Count - 1);
+                                
+                                Wcolors.Add(new Color(0, 0, 0, 1));
+                                Wcolors.Add(new Color(0, 0, 0, 1));
+                                Wcolors.Add(new Color(0, 0, 0, 1));
+                                Wcolors.Add(new Color(0, 0, 0, 1));
                             }
                             else
                             {
+                                vertices.Add(new Vector3(x + .5f, y - .5f, z + .5f));
+                                vertices.Add(new Vector3(x + .5f, y + .5f, z + .5f));
+                                vertices.Add(new Vector3(x - .5f, y + .5f, z + .5f));
+                                vertices.Add(new Vector3(x - .5f, y - .5f, z + .5f));
+
+                                atlasCoords = Atlas.Cords[(int)currBlock - 1, 4];
+                                uvs.Add(new Vector2(atlasCoords.x * grid, atlasCoords.y * grid));
+                                uvs.Add(new Vector2(atlasCoords.x * grid, (atlasCoords.y + 1) * grid));
+                                uvs.Add(new Vector2((atlasCoords.x + 1) * grid, (atlasCoords.y + 1) * grid));
+                                uvs.Add(new Vector2((atlasCoords.x + 1) * grid, atlasCoords.y * grid));
+
                                 triangles.Add(vertices.Count - 4);
                                 triangles.Add(vertices.Count - 3);
                                 triangles.Add(vertices.Count - 1);
@@ -369,40 +455,56 @@ public class GeneratorChunk : MonoBehaviour
                                 triangles.Add(vertices.Count - 3);
                                 triangles.Add(vertices.Count - 2);
                                 triangles.Add(vertices.Count - 1);
-                            }
 
-                            colors.Add(new Color(0, 0, 0, 1));
-                            colors.Add(new Color(0, 0, 0, 1));
-                            colors.Add(new Color(0, 0, 0, 1));
-                            colors.Add(new Color(0, 0, 0, 1));
+                                colors.Add(new Color(0, 0, 0, 1));
+                                colors.Add(new Color(0, 0, 0, 1));
+                                colors.Add(new Color(0, 0, 0, 1));
+                                colors.Add(new Color(0, 0, 0, 1));
+                            }
                         }
 
                         //Z-
                         if (CheckIfFaceVisible(currBlock, x, y, z - 1))
                         {
-                            vertices.Add(new Vector3(x + .5f, y - .5f, z - .5f));
-                            vertices.Add(new Vector3(x + .5f, y + .5f, z - .5f));
-                            vertices.Add(new Vector3(x - .5f, y + .5f, z - .5f));
-                            vertices.Add(new Vector3(x - .5f, y - .5f, z - .5f));
-
-                            atlasCoords = Atlas.Cords[(int)currBlock - 1, 5];
-                            uvs.Add(new Vector2(atlasCoords.x * grid, atlasCoords.y * grid));
-                            uvs.Add(new Vector2(atlasCoords.x * grid, (atlasCoords.y + 1) * grid));
-                            uvs.Add(new Vector2((atlasCoords.x + 1) * grid, (atlasCoords.y + 1) * grid));
-                            uvs.Add(new Vector2((atlasCoords.x + 1) * grid, atlasCoords.y * grid));
-
                             if (currBlock == BlockType.Water)
                             {
-                                Wtriangles.Add(vertices.Count - 4);
-                                Wtriangles.Add(vertices.Count - 1);
-                                Wtriangles.Add(vertices.Count - 3);
+                                Wvertices.Add(new Vector3(x + .5f, y - .5f, z - .5f));
+                                Wvertices.Add(new Vector3(x + .5f, y + .5f, z - .5f));
+                                Wvertices.Add(new Vector3(x - .5f, y + .5f, z - .5f));
+                                Wvertices.Add(new Vector3(x - .5f, y - .5f, z - .5f));
 
-                                Wtriangles.Add(vertices.Count - 3);
-                                Wtriangles.Add(vertices.Count - 1);
-                                Wtriangles.Add(vertices.Count - 2);
+                                atlasCoords = new Vector2(0, 0);
+                                Wuvs.Add(new Vector2(atlasCoords.x * grid, atlasCoords.y * grid));
+                                Wuvs.Add(new Vector2(atlasCoords.x * grid, (atlasCoords.y + 1) * grid));
+                                Wuvs.Add(new Vector2((atlasCoords.x + 1) * grid, (atlasCoords.y + 1) * grid));
+                                Wuvs.Add(new Vector2((atlasCoords.x + 1) * grid, atlasCoords.y * grid));
+
+                                Wtriangles.Add(Wvertices.Count - 4);
+                                Wtriangles.Add(Wvertices.Count - 1);
+                                Wtriangles.Add(Wvertices.Count - 3);
+                                
+                                Wtriangles.Add(Wvertices.Count - 3);
+                                Wtriangles.Add(Wvertices.Count - 1);
+                                Wtriangles.Add(Wvertices.Count - 2);
+                                
+                                Wcolors.Add(new Color(0, 0, 0, 1));
+                                Wcolors.Add(new Color(0, 0, 0, 1));
+                                Wcolors.Add(new Color(0, 0, 0, 1));
+                                Wcolors.Add(new Color(0, 0, 0, 1));
                             }
                             else
                             {
+                                vertices.Add(new Vector3(x + .5f, y - .5f, z - .5f));
+                                vertices.Add(new Vector3(x + .5f, y + .5f, z - .5f));
+                                vertices.Add(new Vector3(x - .5f, y + .5f, z - .5f));
+                                vertices.Add(new Vector3(x - .5f, y - .5f, z - .5f));
+
+                                atlasCoords = Atlas.Cords[(int)currBlock - 1, 5];
+                                uvs.Add(new Vector2(atlasCoords.x * grid, atlasCoords.y * grid));
+                                uvs.Add(new Vector2(atlasCoords.x * grid, (atlasCoords.y + 1) * grid));
+                                uvs.Add(new Vector2((atlasCoords.x + 1) * grid, (atlasCoords.y + 1) * grid));
+                                uvs.Add(new Vector2((atlasCoords.x + 1) * grid, atlasCoords.y * grid));
+
                                 triangles.Add(vertices.Count - 4);
                                 triangles.Add(vertices.Count - 1);
                                 triangles.Add(vertices.Count - 3);
@@ -410,12 +512,12 @@ public class GeneratorChunk : MonoBehaviour
                                 triangles.Add(vertices.Count - 3);
                                 triangles.Add(vertices.Count - 1);
                                 triangles.Add(vertices.Count - 2);
-                            }
 
-                            colors.Add(new Color(0, 0, 0, 1));
-                            colors.Add(new Color(0, 0, 0, 1));
-                            colors.Add(new Color(0, 0, 0, 1));
-                            colors.Add(new Color(0, 0, 0, 1));
+                                colors.Add(new Color(0, 0, 0, 1));
+                                colors.Add(new Color(0, 0, 0, 1));
+                                colors.Add(new Color(0, 0, 0, 1));
+                                colors.Add(new Color(0, 0, 0, 1));
+                            }
                         }
                     }
                 }
@@ -427,19 +529,22 @@ public class GeneratorChunk : MonoBehaviour
             name = $"Chunk [{ChunkX},{ChunkZ}]";
 
             meshFilter.mesh.Clear();
-
             meshFilter.mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
-
-            meshFilter.mesh.subMeshCount = 2;
-
             meshFilter.mesh.SetVertices(vertices);
             meshFilter.mesh.SetTriangles(triangles, 0);
-            meshFilter.mesh.SetTriangles(Wtriangles, 1);
             meshFilter.mesh.SetUVs(0, uvs);
             meshFilter.mesh.SetColors(colors);
-
             meshFilter.mesh.RecalculateNormals();
             meshCollider.sharedMesh = meshFilter.mesh;
+
+            waterMeshFilter.mesh.Clear();
+            waterMeshFilter.mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+            waterMeshFilter.mesh.SetVertices(Wvertices);
+            waterMeshFilter.mesh.SetTriangles(Wtriangles, 0);
+            waterMeshFilter.mesh.SetUVs(0, Wuvs);
+            waterMeshFilter.mesh.SetColors(Wcolors);
+            waterMeshFilter.mesh.RecalculateNormals();
+            waterMeshCollider.sharedMesh = waterMeshFilter.mesh;
 
             transform.position = new Vector3(ChunkX * GeneratorCore.singleton.ChunkSizeXZ, 0, ChunkZ * GeneratorCore.singleton.ChunkSizeXZ);
         });

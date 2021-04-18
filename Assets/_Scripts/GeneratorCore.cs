@@ -182,20 +182,27 @@ public class GeneratorCore : MonoBehaviour
                 int x = sx + _offset.x;
                 int z = sy + _offset.y;
 
-                if (isInside(0, 0, RenderDistance, sx, sy) && generatorChunks.FindIndex(d => d.ChunkX == x && d.ChunkZ == z) == -1)
+                if (isInsideCIrcle(0, 0, RenderDistance, sx, sy) && generatorChunks.FindIndex(d => d.ChunkX == x && d.ChunkZ == z) == -1)
                 {
                     GameObject chunkGb = new GameObject();
+                    GameObject waterChunkGb = new GameObject();
                     chunkGb.layer = 6;
+                    waterChunkGb.layer = 4;
+
+                    waterChunkGb.transform.parent = chunkGb.transform;
+                    waterChunkGb.name = "Water";
 
                     GeneratorChunk gc = chunkGb.AddComponent<GeneratorChunk>();
-                    MeshRenderer mr = chunkGb.AddComponent<MeshRenderer>();
 
-                    mr.materials = new Material[] { TextureMaterial, WaterMaterial };
+                    gc.waterMeshFilter = waterChunkGb.AddComponent<MeshFilter>();
+                    gc.waterMeshCollider = waterChunkGb.AddComponent<MeshCollider>();
+                    waterChunkGb.AddComponent<MeshRenderer>().material = WaterMaterial;
+
+                    chunkGb.AddComponent<MeshRenderer>().material = TextureMaterial;
                     gc.meshCollider = chunkGb.AddComponent<MeshCollider>();
 
                     gc.Blocks = new byte[ChunkSizeXZ * ChunkSizeY * ChunkSizeXZ];
                     gc.meshFilter = chunkGb.AddComponent<MeshFilter>();
-                    gc.meshRenderer = mr;
 
                     generatorChunks.Add(gc);
 
@@ -222,7 +229,7 @@ public class GeneratorCore : MonoBehaviour
         //CHANGING RENDER DISTANCE TO LOWER VALUE
         foreach(GeneratorChunk gc in generatorChunks.ToArray())
 		{
-            if (!isInside(0, 0, RenderDistance, gc.ChunkX - _offset.x, gc.ChunkZ - _offset.y))
+            if (!isInsideCIrcle(0, 0, RenderDistance, gc.ChunkX - _offset.x, gc.ChunkZ - _offset.y))
             {
                 generatorChunks.Remove(gc);
                 Destroy(gc.gameObject);
@@ -233,7 +240,7 @@ public class GeneratorCore : MonoBehaviour
         StartCoroutine(GenerateWorld());
     }
 
-    static bool isInside(int circle_x, int circle_y,
+    static bool isInsideCIrcle(int circle_x, int circle_y,
                               int rad, int x, int y)
     {
         // Compare radius of circle with
@@ -261,7 +268,7 @@ public class GeneratorCore : MonoBehaviour
 
             for (int i = 0; i < generatorChunks.Count; i++)
             {
-                if (!isInside(0, 0, RenderDistance, generatorChunks[i].ChunkX - _offset.x, generatorChunks[i].ChunkZ - _offset.y))
+                if (!isInsideCIrcle(0, 0, RenderDistance, generatorChunks[i].ChunkX - _offset.x, generatorChunks[i].ChunkZ - _offset.y))
                 {
                     ChunksToRegenerate.Enqueue(generatorChunks[i]);
                 }
@@ -281,7 +288,7 @@ public class GeneratorCore : MonoBehaviour
                     int x = sx + _offset.x;
                     int z = sy + _offset.y;
 
-                    if(isInside(0, 0, RenderDistance, sx, sy))
+                    if(isInsideCIrcle(0, 0, RenderDistance, sx, sy))
                     {
                         if (generatorChunks.FindIndex(f => f.ChunkX == x && f.ChunkZ == z) == -1 && ChunksToRegenerate.Count > 0)
                         {

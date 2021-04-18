@@ -298,7 +298,7 @@ MonoBehaviour:
     m_PostInfinity: 2
     m_RotationOrder: 4
   GenCurve: []
-  RenderDistance: 32
+  RenderDistance: 12
   ChunkSizeXZ: 16
   ChunkSizeY: 256
   ChunkLoadingIntervalMs: 15
@@ -395,7 +395,7 @@ Camera:
     y: 0
     width: 1
     height: 1
-  near clip plane: 0.03
+  near clip plane: 0.01
   far clip plane: 10000
   field of view: 60
   orthographic: 0
@@ -443,7 +443,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   layerMask:
     serializedVersion: 2
-    m_Bits: 2147483647
+    m_Bits: 64
   rotationspeed: 0.8
   FlyingSpeed: 1.2
   HandRange: 10

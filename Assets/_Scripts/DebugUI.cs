@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using TMPro;
 using UnityEngine;
 using UnityEngine.Profiling;
@@ -17,11 +18,14 @@ public class DebugUI : MonoBehaviour
 
     public float Interval = 0.2f;
     float TimeToChange = 0;
+    PerformanceCounter ramCounter;
 
     // Start is called before the first frame update
     void Start()
     {
         DontDestroyOnLoad(this);
+
+        ramCounter = new PerformanceCounter("Memory", "Available MBytes");
     }
 
     // Update is called once per frame
@@ -36,13 +40,15 @@ public class DebugUI : MonoBehaviour
             LUIText.text = 
                 $"DEBUG: \n" +
                 $"{FPS} FPS, {MS.ToString("0.0ms")}\n" +
+                $"XYZ: {(GeneratorCore.singleton != null ? $"{GeneratorCore.singleton.player.position.x}, {GeneratorCore.singleton.player.position.y}, {GeneratorCore.singleton.player.position.z}" : "NULL")}\n" +
+                $"CHUNK: {(GeneratorCore.singleton != null ? $"{GeneratorCore.singleton._offset.x}, {GeneratorCore.singleton._offset.y}" : "NULL")}\n" +
                 $"SEED: {(GeneratorCore.singleton != null ? GeneratorCore.singleton.Seed.ToString() : "NULL")}\n" +
                 $"ACTIVE CHUNKS: {(GeneratorCore.singleton != null ? GeneratorCore.singleton.generatorChunks.Count.ToString() : "NULL")}\n" +
                 $"RENDER DISTANCE: {(GeneratorCore.singleton != null ? GeneratorCore.singleton.RenderDistance.ToString() : "NULL")}";
 
             RUIText.text =
                 $"INFO: \n" +
-                $"RAM: {(GC.GetTotalMemory(true) + Profiler.GetTotalAllocatedMemoryLong() + Profiler.GetTotalReservedMemoryLong()) / 1024 / 1024}MB\n" +
+                $"RAM: {(GC.GetTotalMemory(true) + Profiler.GetTotalAllocatedMemoryLong()) / 1024 / 1024}MB\n" +
                 $"SCREEN: {Screen.width}x{Screen.height}@{Screen.currentResolution.refreshRate}Hz";
 
             TimeToChange = 0;
