@@ -47,7 +47,6 @@ public class SaveManager : MonoBehaviour
 
     bool ApplicationWantsToQuit()
     {
-        print(Time.time);
         SaveWorld(true);
 
         return false;

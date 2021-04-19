@@ -4,6 +4,8 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
+    public static PlayerController singleton;
+
     public LayerMask layerMask;
 
     public float rotationspeed = 60;
@@ -12,6 +14,8 @@ public class PlayerController : MonoBehaviour
 
     void Start()
     {
+        singleton = this;
+
         Cursor.visible = false;
         Cursor.lockState = CursorLockMode.Locked;
     }

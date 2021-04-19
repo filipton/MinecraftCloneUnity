@@ -30,6 +30,9 @@ public class GeneratorCore : MonoBehaviour
     public float NoiseScaleXZ = 1;
     public float NoiseScaleY = 1;
 
+    public float TreeNoiseScaleXZ = 1;
+    public float TreeThreshold = 0.5f;
+
     [Header("Textures Settings")]
     public Material TextureMaterial;
     public Material WaterMaterial;
@@ -37,6 +40,8 @@ public class GeneratorCore : MonoBehaviour
 
     [Header("Generator Fields")]
     public List<GeneratorChunk> generatorChunks = new List<GeneratorChunk>();
+    public Dictionary<Vector2Int, Queue<CachedBlockType>> cachedBlockTypes = new Dictionary<Vector2Int, Queue<CachedBlockType>>();
+
     public List<AdvBlocksGenObj> AdvancedBlocksGeneration = new List<AdvBlocksGenObj>();
     public Transform player;
     public Vector2Int _offset = new Vector2Int();
@@ -354,11 +359,18 @@ public enum BlockType
     Stone = 1,
     Dirt = 2,
     Grass = 3,
-    Water = 4,
+    Sand = 4,
     Wood = 5,
     Leaves = 6,
     IronOre = 7,
     DiamondOre = 8,
     GoldOre = 9,
-    CoalOre = 10
+    CoalOre = 10,
+    Water = 99,
+}
+
+public struct CachedBlockType
+{
+    public Vector3Int BlockPos;
+    public BlockType blockType;
 }

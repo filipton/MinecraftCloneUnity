@@ -304,6 +304,8 @@ MonoBehaviour:
   ChunkLoadingIntervalMs: 15
   NoiseScaleXZ: 0.15
   NoiseScaleY: 0.15
+  TreeNoiseScaleXZ: 0.8
+  TreeThreshold: 0.9
   TextureMaterial: {fileID: 2100000, guid: 5c816ae44b9ab864a9810e4fa6878b2a, type: 2}
   WaterMaterial: {fileID: 2100000, guid: b433cdadb16d1de49a6835cfdbab8ab0, type: 2}
   atlasSize: 4

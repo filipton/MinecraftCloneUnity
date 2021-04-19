@@ -51,43 +51,43 @@ public class GeneratorChunk : MonoBehaviour
                         {
                             if (depthY == 0)
                             {
-                                if (lx == 2 && lz == 8)
-                                {
-                                    for (int tlx = -2; tlx <= 2; tlx++)
-                                    {
-                                        for (int tly = 3; tly <= 5; tly++)
-                                        {
-                                            for (int tlz = -2; tlz <= 2; tlz++)
-                                            {
-                                                Blocks[GetArrayCords(tlx + lx, tly + ly, tlz + lz)] = (byte)BlockType.Leaves;
-                                                //Vector2Int chunkCords = new Vector2Int(Mathf.FloorToInt((x + lx + 0.5f) / GeneratorCore.singleton.ChunkSizeXZ), Mathf.FloorToInt((z + lz + 0.5f) / GeneratorCore.singleton.ChunkSizeXZ));
-                                            }
-                                        }
-                                    }
+                                float val = Mathf.PerlinNoise((x * GeneratorCore.singleton.TreeNoiseScaleXZ) + ((float)GeneratorCore.singleton.Seed / 100), (z * GeneratorCore.singleton.TreeNoiseScaleXZ) + ((float)GeneratorCore.singleton.Seed / 100));
 
-                                    Blocks[GetArrayCords(lx, ly, lz)] = (byte)BlockType.Wood;
-                                    Blocks[GetArrayCords(lx, ly + 1, lz)] = (byte)BlockType.Wood;
-                                    Blocks[GetArrayCords(lx, ly + 2, lz)] = (byte)BlockType.Wood;
-                                    Blocks[GetArrayCords(lx, ly + 3, lz)] = (byte)BlockType.Wood;
-                                    Blocks[GetArrayCords(lx, ly + 4, lz)] = (byte)BlockType.Wood;
+                                if (val >= GeneratorCore.singleton.TreeThreshold)
+								{
+                                    GenTree(x, y + 1, z, lx, ly + 1, lz);
                                 }
 
                                 Blocks[GetArrayCords(lx, ly, lz)] = (byte)BlockType.Grass;
                             }
                             else if (depthY < 5)
                             {
-                                Blocks[GetArrayCords(lx, ly, lz)] = (byte)BlockType.Dirt;
+                                if(Blocks[GetArrayCords(lx, ly+1, lz)] == (byte)BlockType.Water)
+								{
+                                    Blocks[GetArrayCords(lx, ly, lz)] = (byte)BlockType.Sand;
+                                }
+								else
+								{
+                                    Blocks[GetArrayCords(lx, ly, lz)] = (byte)BlockType.Dirt;
+                                }
                             }
                             else
                             {
-                                Blocks[GetArrayCords(lx, ly, lz)] = (byte)BlockType.Stone;
-
-                                foreach (AdvBlocksGenObj BlockGen in GeneratorCore.singleton.AdvancedBlocksGeneration)
+                                if (Blocks[GetArrayCords(lx, ly + 1, lz)] == (byte)BlockType.Water)
                                 {
-                                    float PerlinValue = Perlin.Noise(x * BlockGen.NoiseScale, y * BlockGen.NoiseScale, z * BlockGen.NoiseScale);
-                                    if (ly <= BlockGen.MaxY && ly >= BlockGen.MinY && PerlinValue > BlockGen.Threshold)
+                                    Blocks[GetArrayCords(lx, ly, lz)] = (byte)BlockType.Sand;
+                                }
+								else
+								{
+                                    Blocks[GetArrayCords(lx, ly, lz)] = (byte)BlockType.Stone;
+
+                                    foreach (AdvBlocksGenObj BlockGen in GeneratorCore.singleton.AdvancedBlocksGeneration)
                                     {
-                                        Blocks[GetArrayCords(lx, ly, lz)] = (byte)BlockGen.blockType;
+                                        float PerlinValue = Perlin.Noise(x * BlockGen.NoiseScale, y * BlockGen.NoiseScale, z * BlockGen.NoiseScale);
+                                        if (ly <= BlockGen.MaxY && ly >= BlockGen.MinY && PerlinValue > BlockGen.Threshold)
+                                        {
+                                            Blocks[GetArrayCords(lx, ly, lz)] = (byte)BlockGen.blockType;
+                                        }
                                     }
                                 }
                             }
@@ -108,10 +108,74 @@ public class GeneratorChunk : MonoBehaviour
                 }
             }
 
+            //GET CACHED BLOCKS
+            Vector2Int cchunkCords = new Vector2Int(ChunkX, ChunkZ);
+            if (GeneratorCore.singleton.cachedBlockTypes.ContainsKey(cchunkCords))
+			{
+				while (GeneratorCore.singleton.cachedBlockTypes[cchunkCords].Count > 0)
+				{
+                    CachedBlockType cbt = GeneratorCore.singleton.cachedBlockTypes[cchunkCords].Dequeue();
+                    Blocks[GetArrayCords(cbt.BlockPos.x, cbt.BlockPos.y, cbt.BlockPos.z)] = (byte)cbt.blockType;
+                }
+			}
+
             SaveManager.singleton.SaveBlocks(cX, cZ, Blocks);
         }
 
         GenerateChunkMesh();
+    }
+
+    public void GenTree(int x, int y, int z, int lx, int ly, int lz)
+	{
+        List<GeneratorChunk> chunks = new List<GeneratorChunk>();
+
+        for (int tlx = -2; tlx <= 2; tlx++)
+        {
+            for (int tly = 3; tly <= 5; tly++)
+            {
+                for (int tlz = -2; tlz <= 2; tlz++)
+                {
+                    Vector2Int chunkCords = new Vector2Int(Mathf.FloorToInt((x + tlx + 0.5f) / GeneratorCore.singleton.ChunkSizeXZ), Mathf.FloorToInt((z + tlz + 0.5f) / GeneratorCore.singleton.ChunkSizeXZ));
+
+                    if (chunkCords.x == ChunkX && chunkCords.y == ChunkZ)
+                    {
+                        Blocks[GetArrayCords(tlx + lx, tly + ly, tlz + lz)] = (byte)BlockType.Leaves;
+                    }
+                    else
+                    {
+                        int cIndex = GeneratorCore.singleton.generatorChunks.FindIndex(c => c.ChunkX == chunkCords.x && c.ChunkZ == chunkCords.y);
+                        if (cIndex > -1)
+                        {
+                            GeneratorChunk gc = GeneratorCore.singleton.generatorChunks[cIndex];
+                            if (!chunks.Contains(gc)) chunks.Add(gc);
+
+                            gc.SetBlockGlobal(tlx + x, tly + y, tlz + z, BlockType.Leaves, false);
+                        }
+                        else
+                        {
+                            if (!GeneratorCore.singleton.cachedBlockTypes.ContainsKey(chunkCords))
+                            {
+                                GeneratorCore.singleton.cachedBlockTypes[chunkCords] = new Queue<CachedBlockType>();
+                            }
+
+                            Vector3 blockPos = GetLocalChunksBlockCords(tlx + x, y + tly, tlz + z, chunkCords.x, chunkCords.y);
+                            GeneratorCore.singleton.cachedBlockTypes[chunkCords].Enqueue(new CachedBlockType() { BlockPos = new Vector3Int((int)blockPos.x, (int)blockPos.y, (int)blockPos.z), blockType = BlockType.Leaves });
+                        }
+                    }
+                }
+            }
+        }
+
+        Blocks[GetArrayCords(lx, ly, lz)] = (byte)BlockType.Wood;
+        Blocks[GetArrayCords(lx, ly + 1, lz)] = (byte)BlockType.Wood;
+        Blocks[GetArrayCords(lx, ly + 2, lz)] = (byte)BlockType.Wood;
+        Blocks[GetArrayCords(lx, ly + 3, lz)] = (byte)BlockType.Wood;
+        Blocks[GetArrayCords(lx, ly + 4, lz)] = (byte)BlockType.Wood;
+
+        foreach (GeneratorChunk gc in chunks)
+        {
+            gc.RegenerateChunk();
+        }
     }
 
     public void SetBlockLocal(int localX, int localY, int localZ, BlockType blockToSet, bool Regen = true)
